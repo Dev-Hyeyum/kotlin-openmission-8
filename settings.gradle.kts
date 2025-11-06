@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "kotlin-openmission-8"
 include(":app")
+include(":server")
