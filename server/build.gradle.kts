@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     // 2. Ktor 플러그인 적용
     alias(libs.plugins.ktor)
-    kotlin("plugin.serialization") version libs.versions.kotlin.get()
+    alias(libs.plugins.kotlin.serialization)
 }
 group = "com.kotlinopenmission8.server"
 version = "0.0.1"
