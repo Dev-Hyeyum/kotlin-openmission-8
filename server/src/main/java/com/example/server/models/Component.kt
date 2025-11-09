@@ -14,6 +14,6 @@ enum class ComponentAction {
 data class Component(
     val action: ComponentAction,
     val type: ComponentType,
-    val text: String
+    val text: String? = null,
+    val id: String? = null
 )
-

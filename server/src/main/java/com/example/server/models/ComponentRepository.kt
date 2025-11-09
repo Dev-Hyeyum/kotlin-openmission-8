@@ -1,16 +1,22 @@
 package com.example.server.models
 
+import java.util.*
+
 object ComponentRepository {
-    val components = mutableListOf(
-        Component(ComponentAction.Create, ComponentType.Text, "Hello World!"),
-        Component(ComponentAction.Create, ComponentType.Text, "Hello Android!"),
-        Component(ComponentAction.Create, ComponentType.Text, "Hello Kotlin!"),
-        Component(ComponentAction.Create, ComponentType.Text, "Hello Python!")
-    )
+    private val components = Collections.synchronizedList(mutableListOf<StateComponent>())
 
-    fun getAll(): List<Component> = components
+    init {
+        components.add(StateComponent("text_1", ComponentType.Text, "Hello World!"))
+        components.add(StateComponent("text_2", ComponentType.Text, "Hello Android!"))
+    }
 
-    fun addComponents(component: Component) {
+    fun getAll(): List<StateComponent> = components
+
+    fun addComponent(component: StateComponent) {
         components.add(component)
+    }
+
+    fun removeComponent(id: String) {
+        components.removeIf { it.id == id }
     }
 }
