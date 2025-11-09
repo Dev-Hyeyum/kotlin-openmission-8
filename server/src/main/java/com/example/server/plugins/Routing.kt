@@ -1,4 +1,4 @@
-package com.example.server
+package com.example.server.plugins
 
 import com.example.server.model.Component
 import com.example.server.model.ComponentRepository

@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
 }
-
 group = "com.kotlinopenmission8.server"
 version = "0.0.1"
 
@@ -23,11 +22,16 @@ application {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-server-content-negotiation:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:${libs.versions.ktor.get()}")
+    implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
+    implementation(libs.ktor.server.config.yaml)
+    // 테스트 의존성
 
     // 추가 모듈
     implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
@@ -37,5 +41,4 @@ dependencies {
 
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
-
 }
