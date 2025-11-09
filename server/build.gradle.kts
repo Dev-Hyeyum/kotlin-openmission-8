@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     alias(libs.plugins.ktor)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 group = "com.kotlinopenmission8.server"
