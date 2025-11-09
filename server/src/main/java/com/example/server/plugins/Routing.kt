@@ -1,7 +1,7 @@
 package com.example.server.plugins
 
-import com.example.server.model.Component
-import com.example.server.model.ComponentRepository
+import com.example.server.models.Component
+import com.example.server.models.ComponentRepository
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive

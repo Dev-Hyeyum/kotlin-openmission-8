@@ -1,4 +1,4 @@
-package com.example.server.model
+package com.example.server.models
 
 object ComponentRepository {
     val components = mutableListOf(

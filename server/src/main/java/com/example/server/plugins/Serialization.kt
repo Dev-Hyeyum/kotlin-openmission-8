@@ -1,6 +1,6 @@
 package com.example.server
 
-import com.example.server.model.ComponentRepository
+import com.example.server.models.ComponentRepository
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
