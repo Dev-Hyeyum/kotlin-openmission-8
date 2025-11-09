@@ -65,11 +65,6 @@ fun MyApp(context: Context, client: HttpClient) {
 
     val components by viewModel.components.collectAsState()
     var selectComponent by remember{ mutableStateOf(Component(action = ComponentAction.Create, type = ComponentType.Text, text = "dummy")) }
-
-    LaunchedEffect(Unit) {
-        viewModel.getComponent()
-    }
-
     Surface(
         modifier = Modifier
             .fillMaxSize()
