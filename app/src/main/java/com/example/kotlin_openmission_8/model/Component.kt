@@ -1,6 +1,7 @@
 package com.example.kotlin_openmission_8.model
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 enum class ComponentType {
     Button, Text
@@ -12,7 +13,8 @@ enum class ComponentAction {
 
 @Serializable
 data class Component(
-    private val action: ComponentAction,
-    private val type: ComponentType,
-    private val text: String
+    val id: String = UUID.randomUUID().toString(),
+    val action: ComponentAction,
+    val type: ComponentType,
+    val text: String
 )
