@@ -1,5 +1,6 @@
 package com.example.server
 
+import com.example.server.plugins.configureRouting
 import io.ktor.server.application.*
 
 
