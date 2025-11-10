@@ -38,12 +38,14 @@ import com.example.kotlin_openmission_8.model.Components
 import io.ktor.client.*
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 
 class MainActivity : ComponentActivity() {
 
     private val client = HttpClient(CIO) {
+        install(WebSockets)
         install(ContentNegotiation) {
             json()
         }
@@ -65,6 +67,11 @@ fun MyApp(context: Context, client: HttpClient) {
 
     val components by viewModel.components.collectAsState()
     var selectComponent by remember{ mutableStateOf(Component(action = ComponentAction.Create, type = ComponentType.Text, text = "dummy")) }
+
+    LaunchedEffect(Unit) {
+        viewModel.connectWebSocket()
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
