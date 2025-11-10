@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentAction
@@ -46,9 +45,7 @@ private suspend fun sendComponentToServer(client: HttpClient) {
     )
 
     try {
-        // 서버로 POST 요청 전송 (IP 주소 확인 필수!)
-        // 에뮬레이터: 10.0.2.2, 실제 기기: PC의 내부 IP (예: 192.168.x.x)
-        val response = client.post("http://10.0.2.2:8080/components") {
+        val response = client.post("http://10.0.2.2:8080/command") {
             contentType(ContentType.Application.Json)
             setBody(newComponent)
         }

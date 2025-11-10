@@ -1,16 +1,16 @@
-package com.example.server
+package com.example.server.plugins
 
-import com.example.server.model.ComponentRepository
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import kotlinx.serialization.json.Json
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        json()
+        json(Json {
+            isLenient = true
+            // 앱이 모르는 필드를 보내도 무시
+            ignoreUnknownKeys = true
+        })
     }
 }

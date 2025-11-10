@@ -31,14 +31,12 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.config.yaml)
-    // 테스트 의존성
 
-    // 추가 모듈
+    implementation("io.ktor:ktor-server-websockets:${libs.versions.ktor.get()}")
     implementation("io.ktor:ktor-server-status-pages:${libs.versions.ktor.get()}")
-
-    // ✅ ContentNegotiation 플러그인 추가
     implementation("io.ktor:ktor-server-content-negotiation:${libs.versions.ktor.get()}")
 
+    //테스트 의존성
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 }
