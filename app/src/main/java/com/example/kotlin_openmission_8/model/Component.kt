@@ -3,7 +3,13 @@ package com.example.kotlin_openmission_8.model
 import kotlinx.serialization.Serializable
 
 enum class ComponentType {
-    Button, Text
+
+    // 콘텐츠
+    Text, Image, Link, Button,
+
+    // 입력
+    InputField, TextArea, Dropdown, Checkbox, RadioButton, DatePicker, FileUpload,
+
 }
 
 enum class ComponentAction {
