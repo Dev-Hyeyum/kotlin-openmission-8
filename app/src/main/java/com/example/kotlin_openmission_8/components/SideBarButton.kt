@@ -35,6 +35,7 @@ fun SideBarButton(
 ) {
     Button(
         onClick = {
+            // 비동기 요청
             coroutineScope.launch {
                 sendComponentToServer(client, componentType) // 타입 전달
             }
@@ -52,6 +53,7 @@ fun SideBarButton(
     }
 }
 
+// 코루틴 안에서만 호출가능
 private suspend fun sendComponentToServer(client: HttpClient, type: ComponentType) {
     val newComponent = Component(
         action = ComponentAction.Create,

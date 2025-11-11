@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kotlin_openmission_8.components.SideBarButton
 import com.example.kotlin_openmission_8.model.ComponentType
 import io.ktor.client.HttpClient
@@ -32,6 +35,15 @@ val availableComponents = listOf(
     ComponentItem("사진", ComponentType.Image),
     ComponentItem("텍스트", ComponentType.Text),
     ComponentItem("드롭다운", ComponentType.Dropdown),
+    ComponentItem("항목 5", ComponentType.Button),
+    ComponentItem("항목 6", ComponentType.Image),
+    ComponentItem("항목 7", ComponentType.Text),
+    ComponentItem("항목 8", ComponentType.Button),
+    ComponentItem("항목 9", ComponentType.Image),
+    ComponentItem("항목 10", ComponentType.Text),
+    ComponentItem("항목 11", ComponentType.Button),
+    ComponentItem("항목 12", ComponentType.Image),
+    ComponentItem("항목 13", ComponentType.Text),
 )
 
 
@@ -69,7 +81,27 @@ fun MainContentArea(modifier: Modifier = Modifier) {
             .background(Color(0xFFFFFFFF))
             .border(width = 1.dp, color = Color.Gray)
     ) {
-        Text("웹 페이지가 이곳에 표시됩니다.", modifier = Modifier.padding(16.dp), color = Color.Gray)
+        // 스크롤 상태를 기억하는 변수 생성
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
+            Text("웹 페이지가 이곳에 표시됩니다.", color = Color.Gray)
+
+            // 위한 임시 콘텐츠
+            Spacer(modifier = Modifier.height(50.dp))
+            Text("스크롤 테스트용 긴 내용 1", fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(200.dp))
+            Text("중간 내용 2", fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(300.dp))
+            Text("하단 내용 3", fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(400.dp))
+            Text("바닥 내용입니다. 4", fontSize = 20.sp)
+            // --- 여기까지 테스트용 콘텐츠 ---
+        }
     }
 }
 
