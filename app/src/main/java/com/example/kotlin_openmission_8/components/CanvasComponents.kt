@@ -1,4 +1,4 @@
-package com.example.kotlin_openmission_8.ui
+package com.example.kotlin_openmission_8.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
