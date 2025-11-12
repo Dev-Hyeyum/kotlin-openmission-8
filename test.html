@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Ktor SDUI 스크린</title>
-</head>
-<body>
+</head><body>
 <h1>실시간 스크린</h1>
 <div id="screen" style="border: 2px solid black; padding: 10px; min-height: 200px;">
 </div>
@@ -44,6 +43,15 @@
                 const elToRemove = document.getElementById(command.id);
                 if (elToRemove) {
                     elToRemove.remove();
+                }
+
+            } else if (command.action === "Update") {
+                // 2. ID로 업데이트할 요소를 찾습니다.
+                const elToUpdate = document.getElementById(command.id);
+
+                // 3. 요소가 존재하고, command에 text가 있으면 innerText를 교체합니다.
+                if (elToUpdate && command.text) {
+                    elToUpdate.innerText = command.text;
                 }
             }
         });

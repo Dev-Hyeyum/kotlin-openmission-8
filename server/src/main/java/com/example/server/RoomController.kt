@@ -44,12 +44,26 @@ object RoomController {
                     type = command.type,
                     text = command.text
                 )
-                ComponentRepository.addComponent(newState) // ⭐️ Repository에 저장
+                ComponentRepository.addComponent(newState) // Repository에 저장
 
                 commandToSend = command.copy(id = newId)
             }
+
             ComponentAction.Delete -> {
                 command.id?.let { ComponentRepository.removeComponent(it) }
+            }
+
+            ComponentAction.Update -> {
+                command.id?.let { componentId ->
+                    val existingState = ComponentRepository.getComponent(componentId)
+                    if(existingState != null) {
+                        val updatedState = existingState.copy(
+                            text = command.text // 텍스트만 업데이트
+                            // 여기에 위치, 크기 등 다른것도 업데이트하는 로직 추가
+                        )
+                        ComponentRepository.updateComponent(updatedState)
+                    }
+                }
             }
         }
 
