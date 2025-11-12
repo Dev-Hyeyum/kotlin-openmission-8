@@ -2,25 +2,27 @@ package com.example.kotlin_openmission_8.components
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentAction
 import com.example.kotlin_openmission_8.model.ComponentType // 사용할 Enum 임포트
-import io.ktor.client.HttpClient
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import com.example.kotlin_openmission_8.model.Components
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -28,16 +30,29 @@ import kotlinx.coroutines.launch
 fun SideBarButton(
     coroutineScope: CoroutineScope,
     context: Context,
-    client: HttpClient,
+    viewModel: Components,
     label: String, // UI에 표시될 이름 (예: "텍스트", "버튼")
     componentType: ComponentType, // 서버로 보낼 실제 컴포넌트 타입
     modifier: Modifier = Modifier
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+    var writeText by remember { mutableStateOf("") }
+
     Button(
         onClick = {
             // 비동기 요청
             coroutineScope.launch {
-                sendComponentToServer(client, componentType) // 타입 전달
+                // 버튼 클릭 시 생성 동작
+                // 임시
+                if (componentType == ComponentType.Text || componentType == ComponentType.Button) {
+                    showDialog = true
+                } else {
+                    val newComponent = Component(
+                        action = ComponentAction.Create,
+                        type = componentType,
+                    )
+                    viewModel.postComponent(newComponent)
+                }
             }
             Toast.makeText(context, "$label 컴포넌트 생성 요청", Toast.LENGTH_SHORT).show()
         },
@@ -51,23 +66,52 @@ fun SideBarButton(
     ) {
         Text(text = label, color = Color.White)
     }
-}
 
-// 코루틴 안에서만 호출가능
-private suspend fun sendComponentToServer(client: HttpClient, type: ComponentType) {
-    val newComponent = Component(
-        action = ComponentAction.Create,
-        type = type, // 전달받은 type 사용
-        text = "앱에서 보낸 $type 컴포넌트"
-    )
-
-    try {
-        val response = client.post("http://10.0.2.2:8080/components") {
-            contentType(ContentType.Application.Json)
-            setBody(newComponent)
-        }
-        println("전송 성공: ${response.status} - Type: $type")
-    } catch (e: Exception) {
-        println("전송 실패: ${e.message}")
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            title = {
+                Text("텍스트를 적으시오.")
+            },
+            text = {
+                TextField(
+                    value = writeText,
+                    onValueChange = { newText ->
+                        writeText = newText
+                    },
+                    label = { Text("텍스트를 입력해주세요") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            val newComponent = Component(
+                                action = ComponentAction.Create,
+                                type = componentType,
+                                text = writeText // ✅ 입력 완료 후 서버로 전송
+                            )
+                            viewModel.postComponent(newComponent)
+                        }
+                        showDialog = false
+                    }
+                ) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        // 취소 버튼 클릭 시 수행할 작업
+                        showDialog = false
+                    }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }
