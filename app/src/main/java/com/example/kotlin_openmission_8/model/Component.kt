@@ -1,6 +1,7 @@
 package com.example.kotlin_openmission_8.model
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 enum class ComponentType {
 
@@ -10,6 +11,9 @@ enum class ComponentType {
     // 입력
     InputField, TextArea, Dropdown, Checkbox, RadioButton, DatePicker, FileUpload,
 
+    // 더미
+    Dummy
+
 }
 
 enum class ComponentAction {
@@ -18,7 +22,10 @@ enum class ComponentAction {
 
 @Serializable
 data class Component(
-    private val action: ComponentAction,
-    private val type: ComponentType,
-    private val text: String
+    val action: ComponentAction,
+    val type: ComponentType,
+    val text: String ?= null,
+    val id: String= UUID.randomUUID().toString(),
+    var offsetX: Float = 0f,
+    var offsetY: Float = 0f
 )
