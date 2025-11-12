@@ -1,6 +1,6 @@
 package com.example.server.models
 
-import java.util.*
+import java.util.Collections
 
 object ComponentRepository {
     private val components = Collections.synchronizedList(mutableListOf<StateComponent>())

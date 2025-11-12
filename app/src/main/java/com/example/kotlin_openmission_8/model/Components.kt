@@ -9,6 +9,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.websocket.Frame
@@ -60,6 +61,42 @@ class Components(private val client: HttpClient): ViewModel() {
                 println("삭제 요청 성공: ${response.status}")
             } catch (e: Exception) {
                 println("삭제 요청 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun updateComponentPosition(id: String, offsetX: Float, offsetY: Float) {
+        viewModelScope.launch {
+            try {
+                _components.update { current ->
+                    current.map { component ->
+                        if (component.id == id) {
+                            component.copy(offsetX = offsetX, offsetY = offsetY)
+                        } else {
+                            component
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("업데이트 요청 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun updateComponentSize(id: String, width: Float, height: Float) {
+        viewModelScope.launch {
+            try {
+                _components.update { current ->
+                    current.map { component ->
+                        if (component.id == id) {
+                            component.copy(width = width, height = height)
+                        } else {
+                            component
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("업데이트 요청 실패: ${e.message}")
             }
         }
     }

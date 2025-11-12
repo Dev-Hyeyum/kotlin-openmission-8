@@ -50,11 +50,11 @@ object RoomController {
             }
 
             ComponentAction.Delete -> {
-                command.id?.let { ComponentRepository.removeComponent(it) }
+                command.id.let { ComponentRepository.removeComponent(it) }
             }
 
             ComponentAction.Update -> {
-                command.id?.let { componentId ->
+                command.id.let { componentId ->
                     val existingState = ComponentRepository.getComponent(componentId)
                     if(existingState != null) {
                         val updatedState = existingState.copy(

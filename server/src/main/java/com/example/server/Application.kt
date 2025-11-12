@@ -20,7 +20,7 @@ fun main() {
 
 fun Application.module() {
     // 업데이트를 테스트하는 비동기함수입니다.
-    testUpdate()
+    //testUpdate()
     configureSerialization()
     configureRouting()
     configureWebSocket()

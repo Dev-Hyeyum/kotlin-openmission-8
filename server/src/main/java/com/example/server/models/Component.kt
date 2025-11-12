@@ -1,6 +1,7 @@
 package com.example.server.models
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 // '명령'의 종류 (Enum)
 enum class ComponentAction {
@@ -9,6 +10,7 @@ enum class ComponentAction {
 
 // '명령'의 타입 (Enum)
 enum class ComponentType {
+
     // 콘텐츠
     Text, Image, Link, Button,
 
@@ -18,10 +20,13 @@ enum class ComponentType {
     // 더미
     Dummy
 }
+
 @Serializable
 data class Component(
     val action: ComponentAction,
     val type: ComponentType,
-    val text: String? = null,
-    val id: String? = null
+    val text: String ?= null,
+    val id: String= UUID.randomUUID().toString(),
+    var offsetX: Float = 0f,
+    var offsetY: Float = 0f
 )

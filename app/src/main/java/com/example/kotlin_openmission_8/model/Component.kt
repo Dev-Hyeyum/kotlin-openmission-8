@@ -4,7 +4,16 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 enum class ComponentType {
-    Button, Text
+
+    // 콘텐츠
+    Text, Image, Link, Button,
+
+    // 입력
+    InputField, TextArea, Dropdown, Checkbox, RadioButton, DatePicker, FileUpload,
+
+    // 더미
+    Dummy
+
 }
 
 enum class ComponentAction {
@@ -13,8 +22,12 @@ enum class ComponentAction {
 
 @Serializable
 data class Component(
-    val id: String = UUID.randomUUID().toString(),
     val action: ComponentAction,
     val type: ComponentType,
-    val text: String
+    val text: String ?= null,
+    val id: String= UUID.randomUUID().toString(),
+    var offsetX: Float = 0f,
+    var offsetY: Float = 0f,
+    var width: Float = 200f,
+    var height: Float = 150f
 )
