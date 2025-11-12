@@ -1,11 +1,18 @@
 package com.example.kotlin_openmission_8.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,36 +33,111 @@ fun ComponentBox(
     component: Component,
     parentWidth: Int,
     parentHeight: Int,
-    onPositionChange: (Float, Float) -> Unit
+    onPositionChange: (Float, Float) -> Unit,
+    onSizeChange: ((Float, Float) -> Unit)? = null // 사이즈 변경 콜백 (선택)
 ) {
     val density = LocalDensity.current
 
-    val childBoxSize = 100.dp
-    val childBoxSizePx = with(density) { childBoxSize.toPx() }
-
+    // 초기 크기를 컴포넌트 데이터에서 불러올 수도 있음
     var offsetX by remember { mutableStateOf(component.offsetX) }
     var offsetY by remember { mutableStateOf(component.offsetY) }
 
+    var boxWidth by remember { mutableStateOf(component.width) }
+    var boxHeight by remember { mutableStateOf(component.height) }
+
+    val boxWidthDp = with(density) { boxWidth.toDp() }
+    val boxHeightDp = with(density) { boxHeight.toDp() }
+
+    var showInfo by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
-            // 2. 현재 좌표만큼 박스를 이동시켜서 그림
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-            .size(childBoxSize)
+            .size(boxWidthDp, boxHeightDp)
             .background(Color.Blue)
-            // 3. 드래그 제스처 감지
+            .clickable {
+                println(component)
+                showInfo = true
+            }
+            // 이동 제스처
             .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    // 4. 드래그한 만큼 좌표 업데이트
-                    offsetX = (offsetX + dragAmount.x).coerceIn(0f, parentWidth - childBoxSizePx)
-                    offsetY = (offsetY + dragAmount.y).coerceIn(0f, parentHeight - childBoxSizePx)
+                detectTransformGestures { _, pan, zoom, _ ->
+                    // 이동
+                    offsetX = (offsetX + pan.x).coerceIn(0f, parentWidth - boxWidth)
+                    offsetY = (offsetY + pan.y).coerceIn(0f, parentHeight - boxHeight)
+
+                    // 크기 조절 (줌 값 적용)
+                    if (zoom != 1f) {
+                        boxWidth = (boxWidth * zoom).coerceIn(50f, parentWidth.toFloat())
+                        boxHeight = (boxHeight * zoom).coerceIn(50f, parentHeight.toFloat())
+                    }
 
                     onPositionChange(offsetX, offsetY)
+                    onSizeChange?.invoke(boxWidth, boxHeight)
                 }
             },
         contentAlignment = Alignment.Center
     ) {
         Text("${component.type} ${component.text}", color = Color.White)
-        println("$offsetX, $offsetY")
+    }
+
+    if (showInfo) {
+        AlertDialog(
+            onDismissRequest = {
+                showInfo = false
+            },
+            title = {
+                Text("정보")
+            },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = boxWidth.toString(),
+                        onValueChange = { boxWidth = it.toFloatOrNull() ?: boxWidth },
+                        label = { Text("Width") }
+                    )
+                    OutlinedTextField(
+                        value = boxHeight.toString(),
+                        onValueChange = { boxHeight = it.toFloatOrNull() ?: boxHeight },
+                        label = { Text("Height") }
+                    )
+                    OutlinedTextField(
+                        value = offsetX.toString(),
+                        onValueChange = { offsetX = it.toFloatOrNull() ?: offsetX },
+                        label = { Text("Offset X") }
+                    )
+                    OutlinedTextField(
+                        value = offsetY.toString(),
+                        onValueChange = { offsetY = it.toFloatOrNull() ?: offsetY },
+                        label = { Text("Offset Y") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val newWidth = boxWidth
+                        val newHeight = boxHeight
+                        val newOffsetX = offsetX
+                        val newOffsetY = offsetY
+
+                        onPositionChange(newOffsetX, newOffsetY)
+                        onSizeChange?.invoke(newWidth, newHeight)
+                        showInfo = false
+                    }
+                ) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showInfo = false
+                    }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }
