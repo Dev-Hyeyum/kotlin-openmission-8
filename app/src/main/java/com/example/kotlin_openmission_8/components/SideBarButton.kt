@@ -49,7 +49,7 @@ fun SideBarButton(
                 } else {
                     val newComponent = Component(
                         action = ComponentAction.Create,
-                        type = componentType,
+                        type = componentType
                     )
                     viewModel.postComponent(newComponent)
                 }
