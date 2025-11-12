@@ -3,6 +3,12 @@ package com.example.server.models
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
+// '명령'의 종류 (Enum)
+enum class ComponentAction {
+    Create, Delete, Update
+}
+
+// '명령'의 타입 (Enum)
 enum class ComponentType {
 
     // 콘텐츠
@@ -13,11 +19,6 @@ enum class ComponentType {
 
     // 더미
     Dummy
-
-}
-
-enum class ComponentAction {
-    Create, Delete
 }
 
 @Serializable

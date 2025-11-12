@@ -17,6 +17,7 @@ class MainActivity : ComponentActivity() {
 
     // Ktor 라이브러리를 사용하여 네트워크 통신 준비
     private val client = HttpClient(CIO) {
+        install(WebSockets)
         install(ContentNegotiation) {
             json()
         }
