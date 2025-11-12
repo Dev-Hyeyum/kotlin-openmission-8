@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.config.yaml)
+    implementation("io.ktor:ktor-server-websockets:${libs.versions.ktor.get()}")
     // 테스트 의존성
 
     // 추가 모듈
