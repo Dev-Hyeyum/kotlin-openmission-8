@@ -35,7 +35,11 @@ fun MainContentArea(modifier: Modifier, viewModel: Components) {
                 parentHeight = boxHeight,
                 onPositionChange = { x, y ->
                     viewModel.updateComponentPosition(component.id, x, y)
+                },
+                onSizeChange = { w, h ->
+                    viewModel.updateComponentSize(component.id, w, h)
                 }
+
             )
         }
     }
