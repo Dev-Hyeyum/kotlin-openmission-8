@@ -19,4 +19,9 @@ object ComponentRepository {
     fun removeComponent(id: String) {
         components.removeIf { it.id == id }
     }
+
+    // id가 일치하는 컴포넌트를 찾아 반환하는 함수, 못찾으면 null을 반환함
+    fun getComponent(id: String): StateComponent? {
+        return components.find { it.id == id }
+    }
 }
