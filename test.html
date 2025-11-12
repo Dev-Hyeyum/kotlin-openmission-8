@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ktor SDUI 스크린</title>
+</head>
+<body>
+<h1>실시간 스크린</h1>
+<div id="screen" style="border: 2px solid black; padding: 10px; min-height: 200px;">
+</div>
+
+<script>
+    const ws = new WebSocket("ws://localhost:8080/ws");
+    const screenDiv = document.getElementById("screen");
+
+    ws.onopen = () => {
+        console.log("서버와 WebSocket 연결됨.");
+    };
+    ws.onmessage = (event) => {
+        console.log("서버 메시지 수신:", event.data);
+
+        // 서버가 보낸 JSON 문자열을 JavaScript 객체로 변환
+        let commands = JSON.parse(event.data);
+        if (!Array.isArray(commands)) {
+            commands = [commands];
+        }
+        commands.forEach(command => {
+            if (command.action === "Create") {
+                let el;
+                if (command.type === "Text") {
+                    el = document.createElement("p");
+                } else if (command.type === "Button") {
+                    el = document.createElement("button");
+                } else {
+                    el = document.createElement("div");
+                }
+
+                el.id = command.id;
+                el.innerText = command.text || command.type;
+                el.style.margin = "5px";
+                screenDiv.appendChild(el);
+
+            } else if (command.action === "Delete") {
+                const elToRemove = document.getElementById(command.id);
+                if (elToRemove) {
+                    elToRemove.remove();
+                }
+            }
+        });
+    };
+</script>
+</body>
+</html>
