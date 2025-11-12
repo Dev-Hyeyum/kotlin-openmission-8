@@ -9,7 +9,14 @@ enum class ComponentAction {
 
 // '명령'의 타입 (Enum)
 enum class ComponentType {
-    Button, Text
+    // 콘텐츠
+    Text, Image, Link, Button,
+
+    // 입력
+    InputField, TextArea, Dropdown, Checkbox, RadioButton, DatePicker, FileUpload,
+
+    // 더미
+    Dummy
 }
 @Serializable
 data class Component(
