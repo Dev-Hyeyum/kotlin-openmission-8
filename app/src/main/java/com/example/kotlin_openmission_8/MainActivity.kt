@@ -5,9 +5,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import com.example.kotlin_openmission_8.model.Components
 import io.ktor.client.*
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 
 // 앱의 진입점
@@ -18,6 +20,7 @@ class MainActivity : ComponentActivity() {
         install(ContentNegotiation) {
             json()
         }
+        install(WebSockets)
     }
     // 안드로이드 액티비티를 초기화
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,8 +31,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
+            val viewModel = Components(client)
             // 화면그리기를 MainScreen에 위임
-            MainScreen(context, coroutineScope, client)
+            MainScreen(context, coroutineScope, viewModel)
         }
     }
     // 액티비티가 종료되면 close 호출
