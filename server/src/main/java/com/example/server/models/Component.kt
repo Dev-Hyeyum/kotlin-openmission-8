@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 // '명령'의 종류 (Enum)
 enum class ComponentAction {
-    Create, Delete
+    Create, Delete, Update
 }
 
 // '명령'의 타입 (Enum)
