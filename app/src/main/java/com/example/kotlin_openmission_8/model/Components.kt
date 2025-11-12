@@ -63,11 +63,31 @@ class Components(private val client: HttpClient): ViewModel() {
     fun updateComponentPosition(id: String, offsetX: Float, offsetY: Float) {
         viewModelScope.launch {
             try {
-                _components.value.map { component ->
-                    if (component.id == id) {
-                        component.copy(offsetX = offsetX, offsetY = offsetY)
-                    } else {
-                        component
+                _components.update { current ->
+                    current.map { component ->
+                        if (component.id == id) {
+                            component.copy(offsetX = offsetX, offsetY = offsetY)
+                        } else {
+                            component
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("업데이트 요청 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun updateComponentSize(id: String, width: Float, height: Float) {
+        viewModelScope.launch {
+            try {
+                _components.update { current ->
+                    current.map { component ->
+                        if (component.id == id) {
+                            component.copy(width = width, height = height)
+                        } else {
+                            component
+                        }
                     }
                 }
             } catch (e: Exception) {
