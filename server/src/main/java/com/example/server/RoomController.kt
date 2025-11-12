@@ -44,13 +44,15 @@ object RoomController {
                     type = command.type,
                     text = command.text
                 )
-                ComponentRepository.addComponent(newState) // ⭐️ Repository에 저장
+                ComponentRepository.addComponent(newState) // Repository에 저장
 
                 commandToSend = command.copy(id = newId)
             }
             ComponentAction.Delete -> {
                 command.id?.let { ComponentRepository.removeComponent(it) }
             }
+
+            ComponentAction.Update -> TODO()
         }
 
         val commandJson = Json.encodeToString(commandToSend)
