@@ -32,5 +32,7 @@ data class Component(
     var offsetX: Float = 0f,
     var offsetY: Float = 0f,
     var width: Float = 200f,
-    var height: Float = 150f
+    var height: Float = 150f,
+
+    val style: Map<String, String>? = null
 )
