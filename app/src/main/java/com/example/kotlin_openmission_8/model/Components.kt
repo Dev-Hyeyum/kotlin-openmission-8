@@ -21,41 +21,42 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _components = MutableStateFlow<List<Component>>(emptyList())
     val components: StateFlow<List<Component>> = _components.asStateFlow()
 
+    private val _canvasScrollState = MutableStateFlow(Pair(0f, 0f))
+    val canvasScrollState: StateFlow<Pair<Float, Float>> = _canvasScrollState.asStateFlow()
+
     private val BASE_URL = "http://10.0.2.2:8080"
     private val WS_URL = "ws://10.0.2.2:8080/ws" // ⚡ WebSocket 경로
 
+    private var isConnected = false
+
+    private suspend fun sendCommand(component: Component, logTag: String) {
+        try {
+            val response = client.post("$BASE_URL/command") {
+                contentType(ContentType.Application.Json)
+                setBody(component)
+            }
+            println("✅ $logTag 성공: ${response.status} (ID: ${component.id})")
+        } catch (e: Exception) {
+            println("❌ $logTag 실패: ${e.message}")
+        }
+    }
+
     fun postComponent(component: Component) {
         viewModelScope.launch {
-            try {
-                val response = client.post("$BASE_URL/command") {
-                    contentType(ContentType.Application.Json)
-                    setBody(component)
-                }
-                println("전송 성공: ${response.status}")
-            } catch (e: Exception) {
-                println("전송 실패: ${e.message}")
-            }
+            sendCommand(component, "생성")
         }
     }
 
     fun deleteComponent(id: String) {
         viewModelScope.launch {
-            try {
-                val deleteCommand = Component(
-                    action = ComponentAction.Delete,
-                    type = ComponentType.Text,
-                    text = "",
-                    id = id
-                )
+            val deleteCommand = Component(
+                action = ComponentAction.Delete,
+                type = ComponentType.Text,
+                text = "",
+                id = id
+            )
 
-                val response = client.post("$BASE_URL/command") {
-                    contentType(ContentType.Application.Json)
-                    setBody(deleteCommand)
-                }
-                println("삭제 요청 성공: ${response.status}")
-            } catch (e: Exception) {
-                println("삭제 요청 실패: ${e.message}")
-            }
+            sendCommand(deleteCommand, "삭제")
         }
     }
 
@@ -68,39 +69,34 @@ class Components(private val client: HttpClient): ViewModel() {
         text: String? = null
     ) {
         viewModelScope.launch {
-            try {
-                _components.update{ current ->
-                    current.map { component ->
-                        if (component.id == id) {
-                            component.copy(
-                                action = ComponentAction.Update,
-                                text = text ?: component.text,
-                                width = width ?: component.width,
-                                height = height ?: component.height ,
-                                offsetX = offsetX ?: component.offsetX,
-                                offsetY = offsetY ?: component.offsetY
-                            )
-                        } else {
-                            component
-                        }
+            _components.update { current ->
+                current.map { component ->
+                    if (component.id == id) {
+                        component.copy(
+                            action = ComponentAction.Update,
+                            text = text ?: component.text,
+                            width = width ?: component.width,
+                            height = height ?: component.height,
+                            offsetX = offsetX ?: component.offsetX,
+                            offsetY = offsetY ?: component.offsetY
+                        )
+                    } else {
+                        component
                     }
                 }
-
-                val updatedComponent = _components.value.first { it.id == id }
-                val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
-                client.post("$BASE_URL/command") {
-                    contentType(ContentType.Application.Json)
-                    setBody(updateCommand)
-                }
-                println("⬆️ 업데이트 전송: ${updateCommand.id}")
-
-            } catch (e: Exception) {
-                println("업데이트 요청 실패: ${e.message}")
             }
+
+            val updatedComponent = _components.value.first { it.id == id }
+            val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
+
+            sendCommand(updateCommand, "수정")
         }
     }
 
     fun connectWebSocket() {
+        if(isConnected) return
+        isConnected = true
+
         viewModelScope.launch {
             try {
                 client.webSocket(WS_URL) {
@@ -127,6 +123,9 @@ class Components(private val client: HttpClient): ViewModel() {
                 }
             } catch (e: Exception) {
                 println("❌ WebSocket 연결 실패: ${e.message}")
+            } finally {
+                isConnected = false
+                println("🔌 WebSocket 연결 종료 및 플래그 초기화")
             }
         }
     }
@@ -136,7 +135,7 @@ class Components(private val client: HttpClient): ViewModel() {
         _components.update { currentList ->
             val newList = currentList.toMutableList()
             when (command.action) {
-                ComponentAction.Create -> {
+                ComponentAction.Create, ComponentAction.Update -> {
                     val index = newList.indexOfFirst { it.id == command.id }
                     if (index != -1) newList[index] = command else newList.add(command)
                     println("➕ 추가/수정됨: ${command.id}")
@@ -149,5 +148,15 @@ class Components(private val client: HttpClient): ViewModel() {
             }
             newList
         }
+    }
+
+    fun scrollCanvas(dx: Float, dy: Float) {
+        _canvasScrollState.update { (currentX, currentY) ->
+            Pair(currentX + dx, currentY + dy)
+        }
+    }
+
+    fun resetCanvas() {
+        _canvasScrollState.value = Pair(0f, 0f)
     }
 }
