@@ -17,7 +17,7 @@ enum class ComponentType {
 }
 
 enum class ComponentAction {
-    Create, Delete
+    Create, Delete, Update
 }
 
 @Serializable
