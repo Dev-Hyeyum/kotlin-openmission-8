@@ -26,7 +26,6 @@ import kotlin.collections.chunked
 
 @Composable
 fun ButtonList(
-    coroutineScope: CoroutineScope,
     context: Context,
     viewModel: Components,
     modifier: Modifier = Modifier
@@ -72,9 +71,8 @@ fun ButtonList(
                 ) {
                     rowItems.forEach { item ->
                         SideBarButton(
-                            coroutineScope,
-                            context,
-                            viewModel,
+                            context = context,
+                            viewModel = viewModel,
                             label = item.label,
                             componentType = item.type,
                             modifier = Modifier.weight(1f)
