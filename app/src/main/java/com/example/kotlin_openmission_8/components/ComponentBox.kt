@@ -1,84 +1,133 @@
 package com.example.kotlin_openmission_8.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.Component
+import com.example.kotlin_openmission_8.model.ComponentType
+import com.example.kotlin_openmission_8.model.Components
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
 fun ComponentBox(
     component: Component,
+    viewModel: Components,
+    coroutineScope: CoroutineScope,
     parentWidth: Int,
-    parentHeight: Int,
-    onPositionChange: (Float, Float) -> Unit,
-    onSizeChange: ((Float, Float) -> Unit)? = null // 사이즈 변경 콜백 (선택)
+    parentHeight: Int
 ) {
+    // 화면 밀도 데이터를 가지고 있는 객체, dp <-> px 를 변화할 때 사용
     val density = LocalDensity.current
-
-    // 초기 크기를 컴포넌트 데이터에서 불러올 수도 있음
-    var offsetX by remember { mutableStateOf(component.offsetX) }
-    var offsetY by remember { mutableStateOf(component.offsetY) }
-
-    var boxWidth by remember { mutableStateOf(component.width) }
-    var boxHeight by remember { mutableStateOf(component.height) }
-
+    // component의 x,y 값 데이터를 불러옴
+    var offsetX by remember { mutableFloatStateOf(component.offsetX) }
+    var offsetY by remember { mutableFloatStateOf(component.offsetY) }
+    // component의 높이와 너비 데이터를 불러옴
+    var boxWidth by remember { mutableFloatStateOf(component.width) }
+    var boxHeight by remember { mutableFloatStateOf(component.height) }
+    // component의 텍스트 데이터를 불러옴
+    var text by remember { mutableStateOf(component.text) }
+    // component의 높이와 너비를 dp 단위로 변경
     val boxWidthDp = with(density) { boxWidth.toDp() }
     val boxHeightDp = with(density) { boxHeight.toDp() }
-
+    // AlertDialog의 보여줌을 나타내는 Boolean 값
     var showInfo by remember { mutableStateOf(false) }
+    // 사용자가 적게 움직였을 때 값을 무시하는 객체
+    val touchSlop = LocalViewConfiguration.current.touchSlop
 
     Box(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
             .background(Color.Blue)
-            .clickable {
-                println(component)
-                showInfo = true
-            }
-            // 이동 제스처
             .pointerInput(Unit) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    // 이동
-                    offsetX = (offsetX + pan.x).coerceIn(0f, parentWidth - boxWidth)
-                    offsetY = (offsetY + pan.y).coerceIn(0f, parentHeight - boxHeight)
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    var dragPosition = down.position
+                    var totalPan = Offset.Zero // 총 이동 거리 누적
+                    var isZooming = false
 
-                    // 크기 조절 (줌 값 적용)
-                    if (zoom != 1f) {
-                        boxWidth = (boxWidth * zoom).coerceIn(50f, parentWidth.toFloat())
-                        boxHeight = (boxHeight * zoom).coerceIn(50f, parentHeight.toFloat())
+                    do {
+                        val event = awaitPointerEvent()
+                        val panChange = event.calculatePan()
+                        val zoomChange = event.calculateZoom()
+
+                        // 이동 거리 누적
+                        totalPan += panChange
+
+                        // 줌이 발생했거나, 총 이동 거리가 touchSlop을 넘으면 드래그/줌으로 간주
+                        val isDragging = totalPan.getDistance() > touchSlop
+                        if (zoomChange != 1f) isZooming = true
+
+                        if (isDragging || isZooming) {
+                            // === 드래그 또는 줌 동작 수행 ===
+
+                            // UI 업데이트
+                            offsetX = (offsetX + panChange.x).coerceIn(0f, parentWidth - boxWidth)
+                            offsetY = (offsetY + panChange.y).coerceIn(0f, parentHeight - boxHeight)
+
+                            if (zoomChange != 1f) {
+                                boxWidth = (boxWidth * zoomChange).coerceIn(50f, parentWidth.toFloat())
+                                boxHeight = (boxHeight * zoomChange).coerceIn(50f, parentHeight.toFloat())
+                            }
+
+                            // 이벤트를 소비하여 다른 요소가 처리하지 않도록 함
+                            event.changes.forEach { it.consume() }
+                        }
+
+                    } while (event.changes.any { it.pressed })
+
+                    // === 손을 뗐을 때 판별 ===
+
+                    // 1. 이동 거리가 짧고 줌도 안 했다면 -> 클릭으로 간주!
+                    if (totalPan.getDistance() < touchSlop && !isZooming) {
+                        showInfo = true // 정보창 띄우기
                     }
-
-                    onPositionChange(offsetX, offsetY)
-                    onSizeChange?.invoke(boxWidth, boxHeight)
+                    // 2. 드래그나 줌을 했다면 -> 서버 업데이트
+                    else {
+                        coroutineScope.launch {
+                            viewModel.updateComponent(
+                                id = component.id,
+                                offsetX = offsetX,
+                                offsetY = offsetY,
+                                width = boxWidth,
+                                height = boxHeight,
+                                text = text
+                            )
+                        }
+                    }
                 }
             },
         contentAlignment = Alignment.Center
     ) {
-        Text("${component.type} ${component.text}", color = Color.White)
+        Text("${component.type} $text", color = Color.White)
     }
 
     if (showInfo) {
@@ -111,18 +160,29 @@ fun ComponentBox(
                         onValueChange = { offsetY = it.toFloatOrNull() ?: offsetY },
                         label = { Text("Offset Y") }
                     )
+                    if (component.type == ComponentType.Text || component.type == ComponentType.Button) {
+                        OutlinedTextField(
+                            value = text.toString(),
+                            onValueChange = { text = it },
+                            label = { Text("Text") }
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                viewModel.deleteComponent(component.id)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("컴포넌트 삭제")
+                    }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val newWidth = boxWidth
-                        val newHeight = boxHeight
-                        val newOffsetX = offsetX
-                        val newOffsetY = offsetY
-
-                        onPositionChange(newOffsetX, newOffsetY)
-                        onSizeChange?.invoke(newWidth, newHeight)
+                        viewModel.updateComponent(id = component.id, offsetX = offsetX, offsetY = offsetY, width = boxWidth, height = boxHeight, text = text)
                         showInfo = false
                     }
                 ) {
