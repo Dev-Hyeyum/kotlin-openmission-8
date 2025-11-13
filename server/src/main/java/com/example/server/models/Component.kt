@@ -4,11 +4,13 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 // '명령'의 종류 (Enum)
+@Serializable
 enum class ComponentAction {
     Create, Delete, Update
 }
 
 // '명령'의 타입 (Enum)
+@Serializable
 enum class ComponentType {
 
     // 콘텐츠
@@ -28,5 +30,7 @@ data class Component(
     val text: String ?= null,
     val id: String= UUID.randomUUID().toString(),
     var offsetX: Float = 0f,
-    var offsetY: Float = 0f
+    var offsetY: Float = 0f,
+    var width: Float = 200f,
+    var height: Float = 150f
 )
