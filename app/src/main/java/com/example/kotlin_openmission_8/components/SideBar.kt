@@ -2,11 +2,12 @@ package com.example.kotlin_openmission_8.components
 
 import android.content.Context
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -16,39 +17,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.kotlin_openmission_8.model.Components
-import kotlinx.coroutines.CoroutineScope
 
 
 @Composable
 fun SideBar(
-    coroutineScope: CoroutineScope,
     context: Context,
     viewModel: Components,
-    modifier: Modifier
+    modifier: Modifier,
+    resetPosition: () -> Unit
 ) {
     var showButtonList by remember { mutableStateOf(true) }
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .verticalScroll(rememberScrollState())
     ) {
-        // 접기 버튼
-        IconButton(
-            onClick = {
-                showButtonList = !showButtonList
-            }
+        Row (
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "접기 버튼"
-            )
+            // 접기 버튼
+            IconButton(
+                onClick = {
+                    showButtonList = !showButtonList
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "접기 버튼"
+                )
+            }
+            // 0,0으로 보드를 돌리는 함수
+            IconButton(
+                onClick = {
+                    resetPosition()
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "메인으로 돌아가는 버튼"
+                )
+            }
         }
+
         // 사이드바
         if (showButtonList) {
             ButtonList(
-                coroutineScope,
-                context,
-                viewModel,
+                context = context,
+                viewModel = viewModel,
                 modifier = Modifier.weight(0.25f)
             )
         }
