@@ -137,6 +137,10 @@ fun ComponentBox(
     }
 
     if (showInfo) {
+        // 배경색을 기억할 State
+        var backgroundColor by remember {
+            mutableStateOf(component.style?.get("backgroundColor") ?: "#FFFFFF")
+        }
         AlertDialog(
             onDismissRequest = {
                 showInfo = false
@@ -145,7 +149,7 @@ fun ComponentBox(
                 Text("정보")
             },
             text = {
-                Column (
+                Column(
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
                     OutlinedTextField(
@@ -175,6 +179,13 @@ fun ComponentBox(
                             label = { Text("Text") }
                         )
                     }
+                    // 배경색 입력
+                    OutlinedTextField(
+                        value = backgroundColor,
+                        onValueChange = { backgroundColor = it },
+                        label = { Text("배경색 (예: #FF0000)") }
+                    )
+
                     Button(
                         onClick = {
                             viewModel.deleteComponent(component.id)
@@ -189,7 +200,20 @@ fun ComponentBox(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.updateComponent(id = component.id, offsetX = offsetX, offsetY = offsetY, width = boxWidth, height = boxHeight, text = text)
+                        // 스타일 맵 생성
+                        val newStyleMap = mapOf(
+                            "backgroundColor" to backgroundColor
+                        )
+                        viewModel.updateComponent(
+                            id = component.id,
+                            offsetX = offsetX,
+                            offsetY = offsetY,
+                            width = boxWidth,
+                            height = boxHeight,
+                            text = text,
+                            // 스타일 추가
+                            style = newStyleMap
+                        )
                         showInfo = false
                     }
                 ) {
