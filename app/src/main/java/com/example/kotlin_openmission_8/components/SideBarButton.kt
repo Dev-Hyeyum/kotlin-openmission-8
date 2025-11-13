@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SideBarButton(
-    coroutineScope: CoroutineScope,
     context: Context,
     viewModel: Components,
     label: String, // UI에 표시될 이름 (예: "텍스트", "버튼")
@@ -39,19 +38,14 @@ fun SideBarButton(
 
     Button(
         onClick = {
-            // 비동기 요청
-            coroutineScope.launch {
-                // 버튼 클릭 시 생성 동작
-                // 임시
-                if (componentType == ComponentType.Text || componentType == ComponentType.Button) {
-                    showDialog = true
-                } else {
-                    val newComponent = Component(
-                        action = ComponentAction.Create,
-                        type = componentType
-                    )
-                    viewModel.postComponent(newComponent)
-                }
+            if (componentType == ComponentType.Text || componentType == ComponentType.Button) {
+                showDialog = true
+            } else {
+                val newComponent = Component(
+                    action = ComponentAction.Create,
+                    type = componentType
+                )
+                viewModel.postComponent(newComponent)
             }
             Toast.makeText(context, "$label 컴포넌트 생성 요청", Toast.LENGTH_SHORT).show()
         },
@@ -87,14 +81,12 @@ fun SideBarButton(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        coroutineScope.launch {
-                            val newComponent = Component(
-                                action = ComponentAction.Create,
-                                type = componentType,
-                                text = writeText // ✅ 입력 완료 후 서버로 전송
-                            )
-                            viewModel.postComponent(newComponent)
-                        }
+                        val newComponent = Component(
+                            action = ComponentAction.Create,
+                            type = componentType,
+                            text = writeText // ✅ 입력 완료 후 서버로 전송
+                        )
+                        viewModel.postComponent(newComponent)
                         showDialog = false
                     }
                 ) {
