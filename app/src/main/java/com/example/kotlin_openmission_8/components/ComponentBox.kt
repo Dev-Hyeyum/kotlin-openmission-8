@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,17 +35,12 @@ import androidx.compose.ui.unit.IntOffset
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
 fun ComponentBox(
     component: Component,
-    viewModel: Components,
-    coroutineScope: CoroutineScope,
-    parentWidth: Int,
-    parentHeight: Int
+    viewModel: Components
 ) {
     // 화면 밀도 데이터를 가지고 있는 객체, dp <-> px 를 변화할 때 사용
     val density = LocalDensity.current
@@ -54,6 +52,17 @@ fun ComponentBox(
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     // component의 텍스트 데이터를 불러옴
     var text by remember { mutableStateOf(component.text) }
+
+    // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
+    // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
+    LaunchedEffect(component) {
+        offsetX = component.offsetX
+        offsetY = component.offsetY
+        boxWidth = component.width
+        boxHeight = component.height
+        text = component.text
+    }
+
     // component의 높이와 너비를 dp 단위로 변경
     val boxWidthDp = with(density) { boxWidth.toDp() }
     val boxHeightDp = with(density) { boxHeight.toDp() }
@@ -69,8 +78,7 @@ fun ComponentBox(
             .background(Color.Blue)
             .pointerInput(Unit) {
                 awaitEachGesture {
-                    val down = awaitFirstDown()
-                    var dragPosition = down.position
+                    awaitFirstDown()
                     var totalPan = Offset.Zero // 총 이동 거리 누적
                     var isZooming = false
 
@@ -90,12 +98,12 @@ fun ComponentBox(
                             // === 드래그 또는 줌 동작 수행 ===
 
                             // UI 업데이트
-                            offsetX = (offsetX + panChange.x).coerceIn(0f, parentWidth - boxWidth)
-                            offsetY = (offsetY + panChange.y).coerceIn(0f, parentHeight - boxHeight)
+                            offsetX += panChange.x
+                            offsetY += panChange.y
 
                             if (zoomChange != 1f) {
-                                boxWidth = (boxWidth * zoomChange).coerceIn(50f, parentWidth.toFloat())
-                                boxHeight = (boxHeight * zoomChange).coerceIn(50f, parentHeight.toFloat())
+                                boxWidth = (boxWidth * zoomChange).coerceAtLeast(50f)
+                                boxHeight = (boxHeight * zoomChange).coerceAtLeast(50f)
                             }
 
                             // 이벤트를 소비하여 다른 요소가 처리하지 않도록 함
@@ -112,16 +120,14 @@ fun ComponentBox(
                     }
                     // 2. 드래그나 줌을 했다면 -> 서버 업데이트
                     else {
-                        coroutineScope.launch {
-                            viewModel.updateComponent(
-                                id = component.id,
-                                offsetX = offsetX,
-                                offsetY = offsetY,
-                                width = boxWidth,
-                                height = boxHeight,
-                                text = text
-                            )
-                        }
+                        viewModel.updateComponent(
+                            id = component.id,
+                            offsetX = offsetX,
+                            offsetY = offsetY,
+                            width = boxWidth,
+                            height = boxHeight,
+                            text = text
+                        )
                     }
                 }
             },
@@ -139,7 +145,9 @@ fun ComponentBox(
                 Text("정보")
             },
             text = {
-                Column {
+                Column (
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
                     OutlinedTextField(
                         value = boxWidth.toString(),
                         onValueChange = { boxWidth = it.toFloatOrNull() ?: boxWidth },
@@ -169,9 +177,8 @@ fun ComponentBox(
                     }
                     Button(
                         onClick = {
-                            coroutineScope.launch {
-                                viewModel.deleteComponent(component.id)
-                            }
+                            viewModel.deleteComponent(component.id)
+                            showInfo = false
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
