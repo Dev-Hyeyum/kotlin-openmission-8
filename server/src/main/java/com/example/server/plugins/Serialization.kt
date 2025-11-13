@@ -11,6 +11,7 @@ fun Application.configureSerialization() {
             isLenient = true
             // 앱이 모르는 필드를 보내도 무시
             ignoreUnknownKeys = true
+            encodeDefaults = true
         })
     }
 }
