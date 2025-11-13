@@ -65,36 +65,41 @@ class Components(private val client: HttpClient): ViewModel() {
         }
     }
 
-    fun updateComponentPosition(id: String, offsetX: Float, offsetY: Float) {
+    fun updateComponent(
+        id: String,
+        offsetX: Float? = null,
+        offsetY: Float? = null,
+        width: Float? = null,
+        height: Float? = null,
+        text: String? = null
+    ) {
         viewModelScope.launch {
             try {
-                _components.update { current ->
+                _components.update{ current ->
                     current.map { component ->
                         if (component.id == id) {
-                            component.copy(offsetX = offsetX, offsetY = offsetY)
+                            component.copy(
+                                action = ComponentAction.Update,
+                                text = text ?: component.text,
+                                width = width ?: component.width,
+                                height = height ?: component.height ,
+                                offsetX = offsetX ?: component.offsetX,
+                                offsetY = offsetY ?: component.offsetY
+                            )
                         } else {
                             component
                         }
                     }
                 }
-            } catch (e: Exception) {
-                println("업데이트 요청 실패: ${e.message}")
-            }
-        }
-    }
 
-    fun updateComponentSize(id: String, width: Float, height: Float) {
-        viewModelScope.launch {
-            try {
-                _components.update { current ->
-                    current.map { component ->
-                        if (component.id == id) {
-                            component.copy(width = width, height = height)
-                        } else {
-                            component
-                        }
-                    }
+                val updatedComponent = _components.value.first { it.id == id }
+                val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
+                client.post("$BASE_URL/command") {
+                    contentType(ContentType.Application.Json)
+                    setBody(updateCommand)
                 }
+                println("⬆️ 업데이트 전송: ${updateCommand.id}")
+
             } catch (e: Exception) {
                 println("업데이트 요청 실패: ${e.message}")
             }
