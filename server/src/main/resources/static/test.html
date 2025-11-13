@@ -3,27 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <title>Ktor SDUI 스크린</title>
-</head><body>
-<h1>실시간 스크린</h1>
-<div id="screen" style="border: 2px solid black; padding: 10px; min-height: 200px;">
-</div>
-
+    <style>
+        body {
+            // 캔버스의 크기를 정의하는 부분
+            width: 2500px;
+            height: 5000px;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+        h1 {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
 <script>
     const ws = new WebSocket("ws://localhost:8080/ws");
-    const screenDiv = document.getElementById("screen");
+    function applyStylesAndText(el, command) {
+        // 컴포넌트의 크기를 가져옴
+        const width = command.width || 200;
+        const height = command.height || 150;
+        // 컴포넌트의 위치 오프셋을 가져옴
+        let offsetX = command.offsetX || 10;
+        let offsetY = command.offsetY || 10;
+
+        // 크기, 위치값을 적용
+        el.style.position = 'absolute';
+        el.style.top = offsetY + 'px';
+        el.style.left = offsetX + 'px';
+        el.style.width = width + 'px';
+        el.style.height = height + 'px';
+        el.style.border = '1px solid gray';
+
+        // 4. 텍스트 적용
+        if (command.text) {
+            el.innerText = command.text;
+        }
+    }
+
 
     ws.onopen = () => {
         console.log("서버와 WebSocket 연결됨.");
     };
+
     ws.onmessage = (event) => {
         console.log("서버 메시지 수신:", event.data);
 
-        // 서버가 보낸 JSON 문자열을 JavaScript 객체로 변환
         let commands = JSON.parse(event.data);
         if (!Array.isArray(commands)) {
             commands = [commands];
         }
+
         commands.forEach(command => {
+
             if (command.action === "Create") {
                 let el;
                 if (command.type === "Text") {
@@ -33,11 +69,11 @@
                 } else {
                     el = document.createElement("div");
                 }
-
                 el.id = command.id;
-                el.innerText = command.text || command.type;
-                el.style.margin = "5px";
-                screenDiv.appendChild(el);
+
+                applyStylesAndText(el, command);
+
+                document.body.appendChild(el);
 
             } else if (command.action === "Delete") {
                 const elToRemove = document.getElementById(command.id);
@@ -46,12 +82,9 @@
                 }
 
             } else if (command.action === "Update") {
-                // 2. ID로 업데이트할 요소를 찾습니다.
                 const elToUpdate = document.getElementById(command.id);
-
-                // 3. 요소가 존재하고, command에 text가 있으면 innerText를 교체합니다.
-                if (elToUpdate && command.text) {
-                    elToUpdate.innerText = command.text;
+                if (elToUpdate) {
+                    applyStylesAndText(elToUpdate, command);
                 }
             }
         });
