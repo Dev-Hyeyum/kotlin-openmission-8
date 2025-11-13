@@ -70,7 +70,8 @@ fun MainScreen(context: Context, coroutineScope: CoroutineScope, viewModel: Comp
                             .fillMaxSize()
                             .background(Color(0xFFFFFFFF))
                             .border(width = 1.dp, color = Color.Gray),
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        coroutineScope = coroutineScope
                     )
                 }
                 SideBar(
@@ -99,7 +100,8 @@ fun MainScreen(context: Context, coroutineScope: CoroutineScope, viewModel: Comp
                             .fillMaxSize()
                             .background(Color(0xFFFFFFFF))
                             .border(width = 1.dp, color = Color.Gray),
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        coroutineScope = coroutineScope
                     )
                 }
                 SideBar(
