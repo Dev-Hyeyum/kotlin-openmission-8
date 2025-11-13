@@ -10,9 +10,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.example.kotlin_openmission_8.model.Components
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun MainContentArea(modifier: Modifier, viewModel: Components) {
+fun MainContentArea(modifier: Modifier, viewModel: Components, coroutineScope: CoroutineScope) {
     // 컴포넌트 관리 리스트
     val componetsList by viewModel.components.collectAsState()
 
@@ -31,15 +32,10 @@ fun MainContentArea(modifier: Modifier, viewModel: Components) {
         componetsList.forEach { component ->
             ComponentBox(
                 component = component,
+                viewModel = viewModel,
+                coroutineScope = coroutineScope,
                 parentWidth = boxWidth,
-                parentHeight = boxHeight,
-                onPositionChange = { x, y ->
-                    viewModel.updateComponentPosition(component.id, x, y)
-                },
-                onSizeChange = { w, h ->
-                    viewModel.updateComponentSize(component.id, w, h)
-                }
-
+                parentHeight = boxHeight
             )
         }
     }
