@@ -1,11 +1,14 @@
 package com.example.kotlin_openmission_8
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.example.kotlin_openmission_8.model.Components
+import com.example.kotlin_openmission_8.model.ComponentsViewModelFactory
 import io.ktor.client.*
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -22,6 +25,11 @@ class MainActivity : ComponentActivity() {
         }
         install(WebSockets)
     }
+
+    private val viewModel: Components by viewModels {
+        ComponentsViewModelFactory(client)
+    }
+
     // 안드로이드 액티비티를 초기화
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,14 +39,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
-            val viewModel = Components(client)
             // 화면그리기를 MainScreen에 위임
-            MainScreen(context, coroutineScope, viewModel)
+            MainScreen(context, viewModel)
         }
     }
     // 액티비티가 종료되면 close 호출
     override fun onDestroy() {
         super.onDestroy()
-        client.close()
+        if (!isChangingConfigurations) {
+            client.close()
+        }
     }
 }

@@ -3,16 +3,16 @@ package com.example.server.models
 import java.util.Collections
 
 object ComponentRepository {
-    private val components = Collections.synchronizedList(mutableListOf<StateComponent>())
+    private val components = Collections.synchronizedList(mutableListOf<Component>())
 
     init {
-        components.add(StateComponent("text_1", ComponentType.Text, "Hello World!"))
-        components.add(StateComponent("text_2", ComponentType.Text, "Hello Android!"))
+        components.add(Component(action = ComponentAction.Create, type = ComponentType.Text, text = "Hello World!"))
+        components.add(Component(action = ComponentAction.Create, type = ComponentType.Text, text = "Hello Android!"))
     }
 
-    fun getAll(): List<StateComponent> = components
+    fun getAll(): List<Component> = components
 
-    fun addComponent(component: StateComponent) {
+    fun addComponent(component: Component) {
         components.add(component)
     }
 
@@ -21,12 +21,12 @@ object ComponentRepository {
     }
 
     // id가 일치하는 컴포넌트를 찾아 반환하는 함수, 못찾으면 null을 반환함
-    fun getComponent(id: String): StateComponent? {
+    fun getComponent(id: String): Component? {
         return components.find { it.id == id }
     }
 
     // id를 기준으로 기존 컴포넌트를 찾고, updatedState로 교체
-    fun updateComponent(updatedState: StateComponent) {
+    fun updateComponent(updatedState: Component) {
         val index = components.indexOfFirst  {it.id == updatedState.id}
 
         if (index != -1) {

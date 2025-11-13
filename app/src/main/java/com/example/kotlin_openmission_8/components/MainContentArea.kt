@@ -1,46 +1,53 @@
 package com.example.kotlin_openmission_8.components
 
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import com.example.kotlin_openmission_8.model.Components
 
 @Composable
-fun MainContentArea(modifier: Modifier, viewModel: Components) {
+fun MainContentArea(
+    modifier: Modifier,
+    viewModel: Components,
+    canvasOffsetX: Float,
+    canvasOffsetY: Float,
+    canvasPosition: (Float, Float) -> Unit
+) {
     // 컴포넌트 관리 리스트
     val componetsList by viewModel.components.collectAsState()
 
-    // Box의 실제 크기를 저장할 상태
-    var boxWidth by remember { mutableStateOf(0) }
-    var boxHeight by remember { mutableStateOf(0) }
-
     Box(
         modifier = modifier
-            .onGloballyPositioned { coordinates ->
-                val size = coordinates.size
-                boxWidth = size.width
-                boxHeight = size.height
+            .fillMaxSize()
+            .clipToBounds() // 영역 밖으로 나간 컴포넌트 안 보이게 자르기
+            // 2. 배경(빈 공간)을 드래그하면 캔버스 전체 이동
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, _, _ ->
+                    canvasPosition(pan.x, pan.y)
+                }
             }
     ) {
-        componetsList.forEach { component ->
-            ComponentBox(
-                component = component,
-                parentWidth = boxWidth,
-                parentHeight = boxHeight,
-                onPositionChange = { x, y ->
-                    viewModel.updateComponentPosition(component.id, x, y)
-                },
-                onSizeChange = { w, h ->
-                    viewModel.updateComponentSize(component.id, w, h)
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    translationX = canvasOffsetX
+                    translationY = canvasOffsetY
                 }
-
-            )
+        ) {
+            componetsList.forEach { component ->
+                ComponentBox(
+                    component = component,
+                    viewModel = viewModel
+                )
+            }
         }
+
     }
 }
