@@ -66,8 +66,7 @@ fun ComponentBox(
     // component의 높이와 너비를 dp 단위로 변경
     val boxWidthDp = with(density) { boxWidth.toDp() }
     val boxHeightDp = with(density) { boxHeight.toDp() }
-    // AlertDialog의 보여줌을 나타내는 Boolean 값
-    var showInfo by remember { mutableStateOf(false) }
+
     // 사용자가 적게 움직였을 때 값을 무시하는 객체
     val touchSlop = LocalViewConfiguration.current.touchSlop
 
@@ -98,8 +97,8 @@ fun ComponentBox(
                             // === 드래그 또는 줌 동작 수행 ===
 
                             // UI 업데이트
-                            offsetX += panChange.x
-                            offsetY += panChange.y
+                            offsetX = (offsetX + panChange.x).coerceAtLeast(0f)
+                            offsetY = (offsetY + panChange.y).coerceAtLeast(0f)
 
                             if (zoomChange != 1f) {
                                 boxWidth = (boxWidth * zoomChange).coerceAtLeast(50f)
@@ -116,7 +115,7 @@ fun ComponentBox(
 
                     // 1. 이동 거리가 짧고 줌도 안 했다면 -> 클릭으로 간주!
                     if (totalPan.getDistance() < touchSlop && !isZooming) {
-                        showInfo = true // 정보창 띄우기
+                        viewModel.getComponent(component.id)
                     }
                     // 2. 드래그나 줌을 했다면 -> 서버 업데이트
                     else {
@@ -134,130 +133,5 @@ fun ComponentBox(
         contentAlignment = Alignment.Center
     ) {
         Text("${component.type} $text", color = Color.White)
-    }
-
-    if (showInfo) {
-        // CSS 값을 기억할 state
-        var backgroundColor by remember { mutableStateOf(component.style?.get("backgroundColor") ?: "#FFFFFF") }
-        var color by remember { mutableStateOf(component.style?.get("color") ?: "#000000")}
-        var fontSize by remember { mutableStateOf(component.style?.get("fontSize") ?: "16")}
-        var fontWeight by remember { mutableStateOf(component.style?.get("fontWeight") ?: "normal") }
-        var fontFamily by remember { mutableStateOf(component.style?.get("fontFamily") ?: "sans-serif") }
-        AlertDialog(
-            onDismissRequest = {
-                showInfo = false
-            },
-            title = {
-                Text("정보")
-            },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState())
-                ) {
-                    OutlinedTextField(
-                        value = boxWidth.toString(),
-                        onValueChange = { boxWidth = it.toFloatOrNull() ?: boxWidth },
-                        label = { Text("Width") }
-                    )
-                    OutlinedTextField(
-                        value = boxHeight.toString(),
-                        onValueChange = { boxHeight = it.toFloatOrNull() ?: boxHeight },
-                        label = { Text("Height") }
-                    )
-                    OutlinedTextField(
-                        value = offsetX.toString(),
-                        onValueChange = { offsetX = it.toFloatOrNull() ?: offsetX },
-                        label = { Text("Offset X") }
-                    )
-                    OutlinedTextField(
-                        value = offsetY.toString(),
-                        onValueChange = { offsetY = it.toFloatOrNull() ?: offsetY },
-                        label = { Text("Offset Y") }
-                    )
-                    if (component.type == ComponentType.Text || component.type == ComponentType.Button) {
-                        OutlinedTextField(
-                            value = text.toString(),
-                            onValueChange = { text = it },
-                            label = { Text("Text") }
-                        )
-                    }
-                    // 배경색 입력
-                    OutlinedTextField(
-                        value = backgroundColor,
-                        onValueChange = { backgroundColor = it },
-                        label = { Text("배경색 (예: #FF0000)") }
-                    )
-
-                    OutlinedTextField(
-                        value = color,
-                        onValueChange = { color = it },
-                        label = { Text("글자색 (예: #000000)") }
-                    )
-
-                    OutlinedTextField(
-                        value = fontSize,
-                        onValueChange = { fontSize = it },
-                        label = { Text("글자 크기 (px 단위 숫자)") }
-                    )
-
-                    OutlinedTextField(
-                        value = fontWeight,
-                        onValueChange = { fontWeight = it },
-                        label = { Text("글자 두께 (bold / normal)") }
-                    )
-
-                    OutlinedTextField(
-                        value = fontFamily,
-                        onValueChange = { fontFamily = it },
-                        label = { Text("폰트 (serif / sans-serif)") }
-                    )
-                    Button(
-                        onClick = {
-                            viewModel.deleteComponent(component.id)
-                            showInfo = false
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("컴포넌트 삭제")
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        // 스타일 맵 생성
-                        val newStyleMap = mapOf(
-                            "backgroundColor" to backgroundColor,
-                            "color" to color,
-                            "fontSize" to fontSize,
-                            "fontWeight" to fontWeight,
-                            "fontFamily" to fontFamily,
-                        )
-                        viewModel.updateComponent(
-                            id = component.id,
-                            offsetX = offsetX,
-                            offsetY = offsetY,
-                            width = boxWidth,
-                            height = boxHeight,
-                            text = text,
-                            // 스타일 추가
-                            style = newStyleMap
-                        )
-                        showInfo = false
-                    }
-                ) {
-                    Text("확인")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showInfo = false
-                    }
-                ) {
-                    Text("취소")
-                }
-            }
-        )
     }
 }

@@ -28,6 +28,8 @@ fun MainScreen(context: Context, viewModel: Components) {
     val scrollState by viewModel.canvasScrollState.collectAsState()
     val (canvasOffsetX, canvasOffsetY) = scrollState
 
+    val isShowSideBar by viewModel.isSideBarExpanded.collectAsState()
+
     // 웹소켓 연결
     LaunchedEffect(Unit) {
         viewModel.connectWebSocket()
@@ -43,7 +45,7 @@ fun MainScreen(context: Context, viewModel: Components) {
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(0.75f)
+                        .weight(if (isShowSideBar) 0.75f else 0.9f)
                         .fillMaxSize()
                         .background(Color(0xFFF1F1F1))
                         .padding(16.dp), // 캔버스 주위의 여백
@@ -56,19 +58,19 @@ fun MainScreen(context: Context, viewModel: Components) {
                             .border(width = 1.dp, color = Color.Gray),
                         viewModel = viewModel,
                         canvasOffsetX = canvasOffsetX,
-                        canvasOffsetY = canvasOffsetY,
-                        canvasPosition = { dx, dy ->
-                            viewModel.scrollCanvas(dx, dy)
-                        }
+                        canvasOffsetY = canvasOffsetY
                     )
                 }
                 SideBar(
                     context = context,
                     viewModel = viewModel,
-                    modifier = Modifier.weight(0.25f),
-                    resetPosition = {
-                        viewModel.resetCanvas()
-                    }
+                    modifier = if (isShowSideBar) {
+                        Modifier.weight(0.25f)
+                    } else {
+                        Modifier.weight(0.1f)
+                    },
+                    isShowSideBar = isShowSideBar,
+                    isLandscape = isLandscape
                 )
             }
         }
@@ -79,7 +81,7 @@ fun MainScreen(context: Context, viewModel: Components) {
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(0.75f)
+                        .weight(if (isShowSideBar) 0.75f else 0.9f)
                         .fillMaxSize()
                         .background(Color(0xFFF1F1F1))
                         .padding(32.dp), // 캔버스 주위의 여백
@@ -92,20 +94,19 @@ fun MainScreen(context: Context, viewModel: Components) {
                             .border(width = 1.dp, color = Color.Gray),
                         viewModel = viewModel,
                         canvasOffsetX = canvasOffsetX,
-                        canvasOffsetY = canvasOffsetY,
-                        canvasPosition = { dx, dy ->
-                            viewModel.scrollCanvas(dx, dy)
-                        }
+                        canvasOffsetY = canvasOffsetY
                     )
                 }
                 SideBar(
-
                     context = context,
                     viewModel = viewModel,
-                    modifier = Modifier.weight(0.25f),
-                    resetPosition = {
-                        viewModel.resetCanvas()
-                    }
+                    modifier = if (isShowSideBar) {
+                        Modifier.weight(0.25f)
+                    } else {
+                        Modifier.weight(0.1f)
+                    },
+                    isShowSideBar = isShowSideBar,
+                    isLandscape = isLandscape
                 )
             }
         }
