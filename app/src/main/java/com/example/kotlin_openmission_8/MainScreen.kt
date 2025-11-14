@@ -58,10 +58,7 @@ fun MainScreen(context: Context, viewModel: Components) {
                             .border(width = 1.dp, color = Color.Gray),
                         viewModel = viewModel,
                         canvasOffsetX = canvasOffsetX,
-                        canvasOffsetY = canvasOffsetY,
-                        canvasPosition = { dx, dy ->
-                            viewModel.scrollCanvas(dx, dy)
-                        }
+                        canvasOffsetY = canvasOffsetY
                     )
                 }
                 SideBar(
@@ -97,10 +94,7 @@ fun MainScreen(context: Context, viewModel: Components) {
                             .border(width = 1.dp, color = Color.Gray),
                         viewModel = viewModel,
                         canvasOffsetX = canvasOffsetX,
-                        canvasOffsetY = canvasOffsetY,
-                        canvasPosition = { dx, dy ->
-                            viewModel.scrollCanvas(dx, dy)
-                        }
+                        canvasOffsetY = canvasOffsetY
                     )
                 }
                 SideBar(
