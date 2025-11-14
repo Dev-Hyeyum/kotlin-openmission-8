@@ -4,7 +4,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 // Room 인스턴스를 생성하고 맵으로 관리하는 싱글톤 객체
-object CanvasManger {
+object CanvasManager {
     // 멀티쓰레드 환경에 특화된 HashMap
     private val rooms = ConcurrentHashMap<String, Room>()
 
