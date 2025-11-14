@@ -16,4 +16,7 @@ object CanvasManager {
         return roomId
     }
 
+    fun getRoom(roomId: String): Room? {
+        return rooms[roomId]
+    }
 }
