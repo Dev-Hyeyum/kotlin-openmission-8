@@ -227,7 +227,11 @@ fun ComponentBox(
                     onClick = {
                         // 스타일 맵 생성
                         val newStyleMap = mapOf(
-                            "backgroundColor" to backgroundColor
+                            "backgroundColor" to backgroundColor,
+                            "color" to color,
+                            "fontSize" to fontSize,
+                            "fontWeight" to fontWeight,
+                            "fontFamily" to fontFamily,
                         )
                         viewModel.updateComponent(
                             id = component.id,
