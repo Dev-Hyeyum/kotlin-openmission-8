@@ -97,8 +97,8 @@ fun ComponentBox(
                             // === 드래그 또는 줌 동작 수행 ===
 
                             // UI 업데이트
-                            offsetX += panChange.x
-                            offsetY += panChange.y
+                            offsetX = (offsetX + panChange.x).coerceAtLeast(0f)
+                            offsetY = (offsetY + panChange.y).coerceAtLeast(0f)
 
                             if (zoomChange != 1f) {
                                 boxWidth = (boxWidth * zoomChange).coerceAtLeast(50f)
