@@ -2,6 +2,7 @@ package com.example.kotlin_openmission_8.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kotlin_openmission_8.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.post
@@ -29,10 +30,6 @@ class Components(private val client: HttpClient): ViewModel() {
     // 선택한 컴포넌트
     private val _component = MutableStateFlow(if(_components.value.isNotEmpty()) _components.value.first() else Component(action = ComponentAction.Create, type = ComponentType.Dummy))
     val component: StateFlow<Component> = _component.asStateFlow()
-
-    // 서버 URL
-    private val BASE_URL = "http://10.0.2.2:8080"
-    private val WS_URL = "ws://10.0.2.2:8080/ws" // ⚡ WebSocket 경로
 
     // websocket 접속 상태
     private var isConnected = false
@@ -164,7 +161,6 @@ class Components(private val client: HttpClient): ViewModel() {
                     newList.removeIf { it.id == command.id }
                     println("🗑️ 삭제됨: ${command.id}")
                 }
-                else -> {}
             }
             newList
         }
@@ -172,7 +168,10 @@ class Components(private val client: HttpClient): ViewModel() {
 
     fun scrollCanvas(dx: Float, dy: Float) {
         _canvasScrollState.update { (currentX, currentY) ->
-            Pair(currentX + dx, currentY + dy)
+            val newX = currentX + dx
+            val newY = currentY + dy
+
+            Pair(newX.coerceAtLeast(0f), newY.coerceAtLeast(0f))
         }
     }
 
@@ -196,4 +195,9 @@ class Components(private val client: HttpClient): ViewModel() {
         _isSideBarMenu.value = false
     }
 
+    companion object {
+        // 서버 URL
+        private const val BASE_URL = BuildConfig.BASE_URL
+        private const val WS_URL = BuildConfig.WS_URL
+    }
 }
