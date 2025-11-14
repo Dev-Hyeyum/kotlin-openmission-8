@@ -17,8 +17,7 @@ fun MainContentArea(
     modifier: Modifier,
     viewModel: Components,
     canvasOffsetX: Float,
-    canvasOffsetY: Float,
-    canvasPosition: (Float, Float) -> Unit
+    canvasOffsetY: Float
 ) {
     // 컴포넌트 관리 리스트
     val componentsList by viewModel.components.collectAsState()
@@ -30,7 +29,7 @@ fun MainContentArea(
             // 2. 배경(빈 공간)을 드래그하면 캔버스 전체 이동
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, _, _ ->
-                    canvasPosition(pan.x, pan.y)
+                    viewModel.scrollCanvas(pan.x, pan.y)
                 }
             }
     ) {
