@@ -18,16 +18,31 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class Components(private val client: HttpClient): ViewModel() {
+    // 컴포넌트의 상태
     private val _components = MutableStateFlow<List<Component>>(emptyList())
     val components: StateFlow<List<Component>> = _components.asStateFlow()
 
+    // MainContentArea 의 상태
     private val _canvasScrollState = MutableStateFlow(Pair(0f, 0f))
     val canvasScrollState: StateFlow<Pair<Float, Float>> = _canvasScrollState.asStateFlow()
 
+    // 선택한 컴포넌트
+    private val _component = MutableStateFlow(if(_components.value.isNotEmpty()) _components.value.first() else Component(action = ComponentAction.Create, type = ComponentType.Dummy))
+    val component: StateFlow<Component> = _component.asStateFlow()
+
+    // 서버 URL
     private val BASE_URL = "http://10.0.2.2:8080"
     private val WS_URL = "ws://10.0.2.2:8080/ws" // ⚡ WebSocket 경로
 
+    // websocket 접속 상태
     private var isConnected = false
+
+    // sideBar 상태
+    private val _isSideBarExpanded = MutableStateFlow(true) // 초기값 true
+    val isSideBarExpanded: StateFlow<Boolean> = _isSideBarExpanded.asStateFlow()
+    // 사이드바의 화면 상태
+    private val _isSideBarMenu = MutableStateFlow(true)
+    val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
 
     private suspend fun sendCommand(component: Component, logTag: String) {
         try {
@@ -39,6 +54,11 @@ class Components(private val client: HttpClient): ViewModel() {
         } catch (e: Exception) {
             println("❌ $logTag 실패: ${e.message}")
         }
+    }
+
+    fun getComponent(id: String) {
+        _component.value = _components.value.find { it.id == id }
+            ?: Component(action = ComponentAction.Create, type = ComponentType.Dummy)
     }
 
     fun postComponent(component: Component) {
@@ -159,4 +179,21 @@ class Components(private val client: HttpClient): ViewModel() {
     fun resetCanvas() {
         _canvasScrollState.value = Pair(0f, 0f)
     }
+
+    fun showSideBar() {
+        _isSideBarExpanded.value = true
+    }
+
+    fun notShowSideBar() {
+        _isSideBarExpanded.value = false
+    }
+
+    fun isCreateMenu() {
+        _isSideBarMenu.value = true
+    }
+
+    fun isEditMenu() {
+        _isSideBarMenu.value = false
+    }
+
 }
