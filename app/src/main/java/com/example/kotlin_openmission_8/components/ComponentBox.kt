@@ -137,10 +137,12 @@ fun ComponentBox(
     }
 
     if (showInfo) {
-        // 배경색을 기억할 State
-        var backgroundColor by remember {
-            mutableStateOf(component.style?.get("backgroundColor") ?: "#FFFFFF")
-        }
+        // CSS 값을 기억할 state
+        var backgroundColor by remember { mutableStateOf(component.style?.get("backgroundColor") ?: "#FFFFFF") }
+        var color by remember { mutableStateOf(component.style?.get("color") ?: "#000000")}
+        var fontSize by remember { mutableStateOf(component.style?.get("fontSize") ?: "16")}
+        var fontWeight by remember { mutableStateOf(component.style?.get("fontWeight") ?: "normal") }
+        var fontFamily by remember { mutableStateOf(component.style?.get("fontFamily") ?: "sans-serif") }
         AlertDialog(
             onDismissRequest = {
                 showInfo = false
@@ -186,6 +188,29 @@ fun ComponentBox(
                         label = { Text("배경색 (예: #FF0000)") }
                     )
 
+                    OutlinedTextField(
+                        value = color,
+                        onValueChange = { color = it },
+                        label = { Text("글자색 (예: #000000)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontSize,
+                        onValueChange = { fontSize = it },
+                        label = { Text("글자 크기 (px 단위 숫자)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontWeight,
+                        onValueChange = { fontWeight = it },
+                        label = { Text("글자 두께 (bold / normal)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontFamily,
+                        onValueChange = { fontFamily = it },
+                        label = { Text("폰트 (serif / sans-serif)") }
+                    )
                     Button(
                         onClick = {
                             viewModel.deleteComponent(component.id)
