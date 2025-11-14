@@ -28,7 +28,7 @@ class Components(private val client: HttpClient): ViewModel() {
     val canvasScrollState: StateFlow<Pair<Float, Float>> = _canvasScrollState.asStateFlow()
 
     // 선택한 컴포넌트
-    private val _component = MutableStateFlow(if(_components.value.isNotEmpty()) _components.value.first() else Component(action = ComponentAction.Create, type = ComponentType.Dummy))
+    private val _component = MutableStateFlow(Component(action = ComponentAction.Create, type = ComponentType.Dummy))
     val component: StateFlow<Component> = _component.asStateFlow()
 
     // websocket 접속 상태
@@ -54,8 +54,7 @@ class Components(private val client: HttpClient): ViewModel() {
     }
 
     fun getComponent(id: String) {
-        _component.value = _components.value.find { it.id == id }
-            ?: Component(action = ComponentAction.Create, type = ComponentType.Dummy)
+        _component.value = _components.value.first { it.id == id }
     }
 
     fun postComponent(component: Component) {
@@ -90,12 +89,11 @@ class Components(private val client: HttpClient): ViewModel() {
                 current.map { component ->
                     if (component.id == id) {
                         component.copy(
-                            action = ComponentAction.Update,
                             text = text ?: component.text,
                             width = width ?: component.width,
                             height = height ?: component.height,
-                            offsetX = offsetX ?: component.offsetX,
-                            offsetY = offsetY ?: component.offsetY
+                            offsetX = (offsetX ?: component.offsetX).coerceAtLeast(0f),
+                            offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f)
                         )
                     } else {
                         component
@@ -127,6 +125,10 @@ class Components(private val client: HttpClient): ViewModel() {
                                     val allComponents = Json.decodeFromString<List<Component>>(message)
                                     _components.value = allComponents
                                     println("📦 초기 데이터 로드 완료: ${allComponents.size}개")
+
+                                    if (allComponents.isNotEmpty()) {
+                                        _component.value = allComponents.first()
+                                    }
                                 } else {
                                     // 2. 단일 명령 수신
                                     val command = Json.decodeFromString<Component>(message)
@@ -153,9 +155,14 @@ class Components(private val client: HttpClient): ViewModel() {
             val newList = currentList.toMutableList()
             when (command.action) {
                 ComponentAction.Create, ComponentAction.Update -> {
-                    val index = newList.indexOfFirst { it.id == command.id }
-                    if (index != -1) newList[index] = command else newList.add(command)
-                    println("➕ 추가/수정됨: ${command.id}")
+                    val cleanCommand = command.copy(
+                        offsetX = command.offsetX.coerceAtLeast(0f),
+                        offsetY = command.offsetY.coerceAtLeast(0f)
+                    )
+
+                    val index = newList.indexOfFirst { it.id == cleanCommand.id }
+                    if (index != -1) newList[index] = cleanCommand else newList.add(cleanCommand)
+                    println("➕ 추가/수T-수정됨: ${cleanCommand.id}")
                 }
                 ComponentAction.Delete -> {
                     newList.removeIf { it.id == command.id }
@@ -171,7 +178,7 @@ class Components(private val client: HttpClient): ViewModel() {
             val newX = currentX + dx
             val newY = currentY + dy
 
-            Pair(newX.coerceAtLeast(0f), newY.coerceAtLeast(0f))
+            Pair(newX.coerceAtMost(0f), newY.coerceAtMost(0f))
         }
     }
 
