@@ -137,6 +137,12 @@ fun ComponentBox(
     }
 
     if (showInfo) {
+        // CSS 값을 기억할 state
+        var backgroundColor by remember { mutableStateOf(component.style?.get("backgroundColor") ?: "#FFFFFF") }
+        var color by remember { mutableStateOf(component.style?.get("color") ?: "#000000")}
+        var fontSize by remember { mutableStateOf(component.style?.get("fontSize") ?: "16")}
+        var fontWeight by remember { mutableStateOf(component.style?.get("fontWeight") ?: "normal") }
+        var fontFamily by remember { mutableStateOf(component.style?.get("fontFamily") ?: "sans-serif") }
         AlertDialog(
             onDismissRequest = {
                 showInfo = false
@@ -145,7 +151,7 @@ fun ComponentBox(
                 Text("정보")
             },
             text = {
-                Column (
+                Column(
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
                     OutlinedTextField(
@@ -175,6 +181,36 @@ fun ComponentBox(
                             label = { Text("Text") }
                         )
                     }
+                    // 배경색 입력
+                    OutlinedTextField(
+                        value = backgroundColor,
+                        onValueChange = { backgroundColor = it },
+                        label = { Text("배경색 (예: #FF0000)") }
+                    )
+
+                    OutlinedTextField(
+                        value = color,
+                        onValueChange = { color = it },
+                        label = { Text("글자색 (예: #000000)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontSize,
+                        onValueChange = { fontSize = it },
+                        label = { Text("글자 크기 (px 단위 숫자)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontWeight,
+                        onValueChange = { fontWeight = it },
+                        label = { Text("글자 두께 (bold / normal)") }
+                    )
+
+                    OutlinedTextField(
+                        value = fontFamily,
+                        onValueChange = { fontFamily = it },
+                        label = { Text("폰트 (serif / sans-serif)") }
+                    )
                     Button(
                         onClick = {
                             viewModel.deleteComponent(component.id)
@@ -189,7 +225,20 @@ fun ComponentBox(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.updateComponent(id = component.id, offsetX = offsetX, offsetY = offsetY, width = boxWidth, height = boxHeight, text = text)
+                        // 스타일 맵 생성
+                        val newStyleMap = mapOf(
+                            "backgroundColor" to backgroundColor
+                        )
+                        viewModel.updateComponent(
+                            id = component.id,
+                            offsetX = offsetX,
+                            offsetY = offsetY,
+                            width = boxWidth,
+                            height = boxHeight,
+                            text = text,
+                            // 스타일 추가
+                            style = newStyleMap
+                        )
                         showInfo = false
                     }
                 ) {
