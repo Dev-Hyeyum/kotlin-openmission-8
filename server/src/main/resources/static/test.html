@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <title>Ktor SDUI 스크린</title>
     <style>
+        /* 5000px x 5000px 크기의 고정된 캔버스 */
         body {
-            // 캔버스의 크기를 정의하는 부분
-            width: 2500px;
+            width: 5000px;
             height: 5000px;
             margin: 0;
             padding: 0;
-            position: relative;
+            position: relative; /* 자식 요소(absolute)의 기준점 */
         }
         h1 {
             position: absolute;
@@ -23,25 +23,47 @@
 <body>
 <script>
     const ws = new WebSocket("ws://localhost:8080/ws");
-    function applyStylesAndText(el, command) {
-        // 컴포넌트의 크기를 가져옴
-        const width = command.width || 200;
-        const height = command.height || 150;
-        // 컴포넌트의 위치 오프셋을 가져옴
-        let offsetX = command.offsetX || 10;
-        let offsetY = command.offsetY || 10;
 
-        // 크기, 위치값을 적용
+     // 엘리먼트(el)에 서버(command)의 스타일을 '번역'하여 적용해주는 헬퍼 함수
+
+    function applyStylesAndText(el, command) {
+        // 1. 레이아웃 적용
         el.style.position = 'absolute';
-        el.style.top = offsetY + 'px';
-        el.style.left = offsetX + 'px';
-        el.style.width = width + 'px';
-        el.style.height = height + 'px';
+        el.style.top = (command.offsetY || 10) + 'px';
+        el.style.left = (command.offsetX || 10) + 'px';
+        el.style.width = (command.width || 200) + 'px';
+        el.style.height = (command.height || 150) + 'px';
         el.style.border = '1px solid gray';
 
-        // 4. 텍스트 적용
+        // 2. 텍스트 적용
         if (command.text) {
             el.innerText = command.text;
+        }
+
+        // 스타일 맵을 CSS코드로 변환하는 로직
+        if (command.style) {
+            const style = command.style; // { "backgroundColor": "#FF0000", ... }
+
+            // 배경색
+            if (style.backgroundColor) {
+                el.style.backgroundColor = style.backgroundColor;
+            }
+            // 글자색
+            if (style.color) {
+                el.style.color = style.color;
+            }
+            // 글자 크기
+            if (style.fontSize) {
+                el.style.fontSize = style.fontSize + 'px'; // 'px' 단위 추가
+            }
+            // 글자 두께
+            if (style.fontWeight) {
+                el.style.fontWeight = style.fontWeight;
+            }
+            // 폰트
+            if (style.fontFamily) {
+                el.style.fontFamily = style.fontFamily;
+            }
         }
     }
 
@@ -54,41 +76,56 @@
         console.log("서버 메시지 수신:", event.data);
 
         let commands = JSON.parse(event.data);
-        if (!Array.isArray(commands)) {
-            commands = [commands];
-        }
 
-        commands.forEach(command => {
+        if (Array.isArray(commands)) {
+             // 1. 초기 전체 리스트 수신 (List<Component>)
+            commands.forEach(command => {
+                const existingEl = document.getElementById(command.id);
+                if (existingEl) existingEl.remove();
 
-            if (command.action === "Create") {
-                let el;
-                if (command.type === "Text") {
-                    el = document.createElement("p");
-                } else if (command.type === "Button") {
-                    el = document.createElement("button");
-                } else {
-                    el = document.createElement("div");
-                }
-                el.id = command.id;
-
+                let el = createComponentElement(command);
                 applyStylesAndText(el, command);
-
                 document.body.appendChild(el);
+            });
+        } else {
+             // 2. 단일 명령 수신 (Component)
+            const command = commands;
+
+            if (command.action === "Create" || command.action === "Update") {
+                let elToUpdate = document.getElementById(command.id);
+
+                if (elToUpdate) {
+                    // (Update)
+                    applyStylesAndText(elToUpdate, command);
+                } else {
+                    // (Create)
+                    elToUpdate = createComponentElement(command);
+                    applyStylesAndText(elToUpdate, command);
+                    document.body.appendChild(elToUpdate);
+                }
 
             } else if (command.action === "Delete") {
                 const elToRemove = document.getElementById(command.id);
                 if (elToRemove) {
                     elToRemove.remove();
                 }
-
-            } else if (command.action === "Update") {
-                const elToUpdate = document.getElementById(command.id);
-                if (elToUpdate) {
-                    applyStylesAndText(elToUpdate, command);
-                }
             }
-        });
+        }
     };
+
+    // 헬퍼 함수
+    function createComponentElement(command) {
+        let el;
+        if (command.type === "Text") {
+            el = document.createElement("p");
+        } else if (command.type === "Button") {
+            el = document.createElement("button");
+        } else {
+            el = document.createElement("div"); // 기본값
+        }
+        el.id = command.id;
+        return el;
+    }
 </script>
 </body>
 </html>
