@@ -102,6 +102,11 @@ class Components(private val client: HttpClient): ViewModel() {
             }
 
             val updatedComponent = _components.value.first { it.id == id }
+
+            if (_component.value.id == id) {
+                _component.value = updatedComponent
+            }
+
             val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
 
             sendCommand(updateCommand, "수정")
@@ -153,12 +158,15 @@ class Components(private val client: HttpClient): ViewModel() {
     private fun handleCommand(command: Component) {
         _components.update { currentList ->
             val newList = currentList.toMutableList()
+
+            val cleanCommand = command.copy(
+                offsetX = command.offsetX.coerceAtLeast(0f),
+                offsetY = command.offsetY.coerceAtLeast(0f)
+            )
+
             when (command.action) {
                 ComponentAction.Create, ComponentAction.Update -> {
-                    val cleanCommand = command.copy(
-                        offsetX = command.offsetX.coerceAtLeast(0f),
-                        offsetY = command.offsetY.coerceAtLeast(0f)
-                    )
+
 
                     val index = newList.indexOfFirst { it.id == cleanCommand.id }
                     if (index != -1) newList[index] = cleanCommand else newList.add(cleanCommand)
@@ -168,6 +176,9 @@ class Components(private val client: HttpClient): ViewModel() {
                     newList.removeIf { it.id == command.id }
                     println("🗑️ 삭제됨: ${command.id}")
                 }
+            }
+            if (_component.value.id == cleanCommand.id && command.action != ComponentAction.Delete) {
+                _component.value = cleanCommand
             }
             newList
         }
