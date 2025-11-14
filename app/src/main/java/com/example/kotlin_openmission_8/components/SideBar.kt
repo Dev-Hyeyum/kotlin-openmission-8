@@ -26,7 +26,6 @@ fun SideBar(
     isShowSideBar: Boolean
 ) {
     val isSideBarMenu by viewModel.isSideBarMenu.collectAsState()
-    val component by viewModel.component.collectAsState()
 
     // 가로일 경우
     if (isLandscape) {
@@ -48,7 +47,6 @@ fun SideBar(
                     )
                 } else {
                     CreateMenu(
-                        component = component,
                         viewModel = viewModel
                     )
                 }
@@ -80,7 +78,6 @@ fun SideBar(
                     )
                 } else {
                     CreateMenu(
-                        component = component,
                         viewModel = viewModel
                     )
                 }
