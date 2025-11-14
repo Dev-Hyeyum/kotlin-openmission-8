@@ -10,7 +10,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,7 +26,9 @@ fun SideBar(
     isShowSideBar: Boolean
 ) {
     val isSideBarMenu by viewModel.isSideBarMenu.collectAsState()
-    // 세로일 경우
+    val component by viewModel.component.collectAsState()
+
+    // 가로일 경우
     if (isLandscape) {
         if (isShowSideBar) {
             Column(
@@ -46,13 +47,11 @@ fun SideBar(
                         modifier = Modifier.weight(0.25f)
                     )
                 } else {
-                    Column(
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        Text("Hello world!")
-                    }
+                    CreateMenu(
+                        component = component,
+                        viewModel = viewModel
+                    )
                 }
-
             }
         } else {
             Column(
@@ -61,7 +60,7 @@ fun SideBar(
                 MenuBar(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, viewModel = viewModel, isShowFunction = { viewModel.showSideBar() })
             }
         }
-        // 가로일 경우
+        // 세로일 경우
     } else {
         if (isShowSideBar) {
             Column(
@@ -80,11 +79,10 @@ fun SideBar(
                         modifier = Modifier.weight(0.25f)
                     )
                 } else {
-                    Column(
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        Text("Hello world!")
-                    }
+                    CreateMenu(
+                        component = component,
+                        viewModel = viewModel
+                    )
                 }
             }
         } else {
