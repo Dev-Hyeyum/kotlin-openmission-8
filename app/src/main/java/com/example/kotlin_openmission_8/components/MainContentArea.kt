@@ -21,7 +21,7 @@ fun MainContentArea(
     canvasPosition: (Float, Float) -> Unit
 ) {
     // 컴포넌트 관리 리스트
-    val componetsList by viewModel.components.collectAsState()
+    val componentsList by viewModel.components.collectAsState()
 
     Box(
         modifier = modifier
@@ -41,7 +41,7 @@ fun MainContentArea(
                     translationY = canvasOffsetY
                 }
         ) {
-            componetsList.forEach { component ->
+            componentsList.forEach { component ->
                 ComponentBox(
                     component = component,
                     viewModel = viewModel
