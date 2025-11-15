@@ -152,14 +152,16 @@ class Components(private val client: HttpClient): ViewModel() {
         }
     }
 
-    fun connectWebSocket() {
+    // 이제 roomId를 인자로 받도록 수정했습니다.
+    fun connectWebSocket(roomId: String) {
         if(isConnected) return
         isConnected = true
 
         viewModelScope.launch {
             try {
-                client.webSocket(WS_URL) {
-                    println("✅ WebSocket 연결 성공")
+                // URL을 RoomId를 사용하도록 변경
+                client.webSocket("$WS_URL/$roomId") {
+                    println("✅ WebSocket 연결 성공 (Room: $roomId)")
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
                             val message = frame.readText()
@@ -180,7 +182,11 @@ class Components(private val client: HttpClient): ViewModel() {
                                 }
                             } catch (e: Exception) {
                                 println("⚠️ 메시지 파싱 오류: ${e.message}")
-                            }
+                            } finally {
+                                isConnected = false
+                                _currentRoomId.value = null
+                                _currentWebUrl.value = null
+                            } // finally 부분은 예외 발생과 관계없이 실행됩니다.
                         }
                     }
                 }
