@@ -82,7 +82,8 @@ class Components(private val client: HttpClient): ViewModel() {
         offsetY: Float? = null,
         width: Float? = null,
         height: Float? = null,
-        text: String? = null
+        text: String? = null,
+        style: ComponentStyle? = null
     ) {
         viewModelScope.launch {
             _components.update { current ->
@@ -93,7 +94,8 @@ class Components(private val client: HttpClient): ViewModel() {
                             width = width ?: component.width,
                             height = height ?: component.height,
                             offsetX = (offsetX ?: component.offsetX).coerceAtLeast(0f),
-                            offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f)
+                            offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f),
+                            style = style ?: component.style
                         )
                     } else {
                         component
