@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,7 +17,8 @@ import com.example.kotlin_openmission_8.model.Components
 fun MenuBar(
     imageVector: ImageVector,
     viewModel: Components,
-    isShowFunction: () -> Unit
+    isShowFunction: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     // 접기 버튼
     IconButton(
@@ -59,7 +61,17 @@ fun MenuBar(
     ) {
         Icon(
             imageVector = Icons.Default.Home,
-            contentDescription = "메인으로 돌아가는 버튼"
+            contentDescription = "스크린 좌표를 0,0 돌아가는 버튼"
+        )
+    }
+    IconButton(
+        onClick = {
+            onNavigateBack()
+        }
+    ) {
+        Icon(
+            imageVector = Icons.Default.Favorite,
+            contentDescription = "홈 화면으로 돌아가는 버튼"
         )
     }
 }

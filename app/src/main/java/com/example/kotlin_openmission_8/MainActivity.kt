@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import com.example.kotlin_openmission_8.controller.MyAppNavigation
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.ComponentsViewModelFactory
 import io.ktor.client.*
@@ -37,10 +38,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         // Jetpack Compose UI
         setContent {
-            val coroutineScope = rememberCoroutineScope()
             val context = LocalContext.current
             // 화면그리기를 MainScreen에 위임
-            MainScreen(context, viewModel)
+            MyAppNavigation(context = context, viewModel = viewModel)
         }
     }
     // 액티비티가 종료되면 close 호출
