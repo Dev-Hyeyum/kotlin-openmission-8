@@ -2,7 +2,7 @@ package com.example.server.models
 
 import java.util.Collections
 
-object ComponentRepository {
+class ComponentRepository {
     private val components = Collections.synchronizedList(mutableListOf<Component>())
 
     init {

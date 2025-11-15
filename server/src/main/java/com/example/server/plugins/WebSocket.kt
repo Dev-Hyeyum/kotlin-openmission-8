@@ -1,6 +1,6 @@
 package com.example.server.plugins
 
-import com.example.server.RoomController
+import com.example.server.CanvasManager
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -16,9 +16,20 @@ fun Application.configureWebSocket() {
     }
 
     routing {
-        webSocket("/ws") {
-            RoomController.onJoin(this)
+        webSocket("/ws/{roomId}") {
+            val roomId = call.parameters["roomId"]
+            if(roomId == null) {
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Room ID가 없습니다."))
+                return@webSocket
+            }
 
+            val room = CanvasManager.getRoom(roomId)
+            if(room == null) {
+                close(CloseReason(CloseReason.Codes.NORMAL, "Room을 찾을 수 없습니다."))
+                return@webSocket
+            }
+
+            room.onJoin(this)
             try {
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
@@ -29,7 +40,7 @@ fun Application.configureWebSocket() {
             } catch (e: Exception) {
                 println("[WebSocket] 오류: ${e.message}")
             } finally {
-                RoomController.onLeave(this)
+                room.onLeave(this)
             }
         }
     }
