@@ -58,8 +58,10 @@ fun HomeScreen(
             ) {
                 IconButton(
                     onClick = {
-
-                    }
+                        viewModel.createCanvas()
+                    },
+                    // 방을 만드는 중에는 비활성화 시켜 사용자의 중복 요청을 방지합니다.
+                    enabled = (roomId == null)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -68,7 +70,7 @@ fun HomeScreen(
                 }
                 IconButton(
                     onClick = {
-
+                        // TODO: 캔버스 삭제 기능 구현
                     }
                 ) {
                     Icon(
