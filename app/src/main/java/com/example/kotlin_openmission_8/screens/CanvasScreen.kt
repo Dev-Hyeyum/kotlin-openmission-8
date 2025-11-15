@@ -30,10 +30,6 @@ fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> 
 
     val isShowSideBar by viewModel.isSideBarExpanded.collectAsState()
 
-    // 웹소켓 연결
-    LaunchedEffect(Unit) {
-        viewModel.connectWebSocket()
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize()
