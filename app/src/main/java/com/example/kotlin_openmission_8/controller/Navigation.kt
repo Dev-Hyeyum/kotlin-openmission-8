@@ -24,12 +24,13 @@ fun MyAppNavigation(context: Context, viewModel: Components) {
         // 3. "home" 경로(HomeScreen) 등록
         composable("home") {
             HomeScreen(
+                viewModel = viewModel,
                 onNavigateToDetail = {
-                    // 4. Detail 화면으로 이동하라는 명령
                     navController.navigate("detail")
                 }
             )
         }
+
 
         // 5. "detail" 경로(DetailScreen) 등록
         composable("detail") {
