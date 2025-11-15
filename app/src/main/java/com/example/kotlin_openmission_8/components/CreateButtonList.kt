@@ -21,11 +21,10 @@ import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.ButtonItem
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
-import kotlinx.coroutines.CoroutineScope
 import kotlin.collections.chunked
 
 @Composable
-fun ButtonList(
+fun CreateButtonList(
     context: Context,
     viewModel: Components,
     modifier: Modifier = Modifier
