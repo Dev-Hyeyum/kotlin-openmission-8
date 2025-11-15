@@ -7,10 +7,6 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
-val properties = Properties().apply {
-    load(rootProject.file("local.properties").inputStream())
-}
-
 android {
     namespace = "com.example.kotlin_openmission_8"
 
@@ -27,6 +23,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // buildConfig
+        val properties = Properties().apply {
+            load(rootProject.file("local.properties").inputStream())
+        }
         buildConfigField("String", "BASE_URL", properties["BASE_URL"].toString())
         buildConfigField("String", "WS_URL", properties["WS_URL"].toString())
     }
@@ -73,15 +73,20 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // color-picker
     implementation("com.github.skydoves:colorpicker-compose:1.1.2")
 
+    // navigation
+    val nav_version = "2.9.6"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
     // --- Ktor Client 의존성 추가 시작 ---
-    // (버전은 libs.versions.toml에 정의된 것을 사용하거나 직접 입력하세요. 예: "3.3.1")
-    implementation("io.ktor:ktor-client-core:3.3.1")
-    implementation("io.ktor:ktor-client-cio:3.3.1") // 또는 ktor-client-android, ktor-client-okhttp
-    implementation("io.ktor:ktor-client-content-negotiation:3.3.1")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.1")
-    // --- Ktor Client 의존성 추가 끝 ---
+    var ktor_version = "3.3.1"
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
