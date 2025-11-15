@@ -1,5 +1,9 @@
 package com.example.kotlin_openmission_8.model
 
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -31,5 +35,11 @@ data class Component(
     var width: Float = 200f,
     var height: Float = 150f,
 
-    val style: Map<String, String>? = null
+    val style: ComponentStyle = ComponentStyle(
+        fontColor = "#FF000000",
+        fontFamily = "Default",
+        fontSize = 12.0f,
+        fontWeight = "Normal",
+        backgroundColor = "#FFFFFFFF"
+    )
 )

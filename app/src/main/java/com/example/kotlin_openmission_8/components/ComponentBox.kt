@@ -1,5 +1,6 @@
 package com.example.kotlin_openmission_8.components
 
+import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -31,7 +32,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.sp
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
@@ -69,6 +73,44 @@ fun ComponentBox(
 
     // 사용자가 적게 움직였을 때 값을 무시하는 객체
     val touchSlop = LocalViewConfiguration.current.touchSlop
+
+    // --- ✨ 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역" ---
+    val styleData = component.style
+
+    // String -> Color (배경색)
+    val composeBackgroundColor = remember(styleData.backgroundColor) {
+        try { Color(parseColor(styleData.backgroundColor)) }
+        catch (e: Exception) { Color.Gray } // 잘못된 값일 경우 기본값
+    }
+
+    // String -> Color (글꼴색)
+    val composeFontColor = remember(styleData.fontColor) {
+        try { Color(parseColor(styleData.fontColor)) }
+        catch (e: Exception) { Color.Black } // 기본값
+    }
+
+    // Float -> TextUnit (글꼴 크기)
+    val composeFontSize = styleData.fontSize.sp
+
+    // String -> FontWeight (글꼴 두께)
+    val composeFontWeight = remember(styleData.fontWeight) {
+        when (styleData.fontWeight) {
+            "Bold" -> FontWeight.Bold
+            "Medium" -> FontWeight.Medium
+            "Light" -> FontWeight.Light
+            else -> FontWeight.Normal
+        }
+    }
+
+    // String -> FontFamily (글꼴)
+    val composeFontFamily = remember(styleData.fontFamily) {
+        when (styleData.fontFamily) {
+            "Serif" -> FontFamily.Serif
+            "Monospace" -> FontFamily.Monospace
+            else -> FontFamily.Default
+        }
+    }
+    // --- (번역 끝) ---
 
     Box(
         modifier = Modifier
@@ -132,6 +174,12 @@ fun ComponentBox(
             },
         contentAlignment = Alignment.Center
     ) {
-        Text("${component.type} $text", color = Color.White)
+        Text(
+            text = "${component.type} $text",
+            color = composeFontColor,
+            fontSize = composeFontSize,
+            fontWeight = composeFontWeight,
+            fontFamily = composeFontFamily
+        )
     }
 }
