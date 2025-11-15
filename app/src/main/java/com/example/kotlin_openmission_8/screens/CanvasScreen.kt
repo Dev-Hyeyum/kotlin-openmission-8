@@ -1,4 +1,4 @@
-package com.example.kotlin_openmission_8
+package com.example.kotlin_openmission_8.screens
 
 import android.content.Context
 import android.content.res.Configuration
@@ -20,7 +20,7 @@ import com.example.kotlin_openmission_8.components.SideBar
 import com.example.kotlin_openmission_8.model.Components
 
 @Composable
-fun MainScreen(context: Context, viewModel: Components) {
+fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> Unit) {
     // 디바이스의 회전 감지
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -70,7 +70,8 @@ fun MainScreen(context: Context, viewModel: Components) {
                         Modifier.weight(0.05f)
                     },
                     isShowSideBar = isShowSideBar,
-                    isLandscape = isLandscape
+                    isLandscape = isLandscape,
+                    onNavigateBack = onNavigateBack
                 )
             }
         }
@@ -106,7 +107,8 @@ fun MainScreen(context: Context, viewModel: Components) {
                         Modifier.weight(0.1f)
                     },
                     isShowSideBar = isShowSideBar,
-                    isLandscape = isLandscape
+                    isLandscape = isLandscape,
+                    onNavigateBack = onNavigateBack
                 )
             }
         }
