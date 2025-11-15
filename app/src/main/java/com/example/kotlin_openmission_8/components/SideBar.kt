@@ -23,7 +23,8 @@ fun SideBar(
     viewModel: Components,
     modifier: Modifier,
     isLandscape: Boolean,
-    isShowSideBar: Boolean
+    isShowSideBar: Boolean,
+    onNavigateBack: () -> Unit
 ) {
     val isSideBarMenu by viewModel.isSideBarMenu.collectAsState()
 
@@ -37,7 +38,12 @@ fun SideBar(
                 Row (
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    MenuBar(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, viewModel = viewModel, isShowFunction = { viewModel.notShowSideBar() })
+                    MenuBar(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        viewModel = viewModel,
+                        isShowFunction = { viewModel.notShowSideBar() },
+                        onNavigateBack = onNavigateBack
+                    )
                 }
                 if (isSideBarMenu) {
                     CreateButtonList(
@@ -55,7 +61,12 @@ fun SideBar(
             Column(
                 modifier = modifier.fillMaxHeight()
             ) {
-                MenuBar(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, viewModel = viewModel, isShowFunction = { viewModel.showSideBar() })
+                MenuBar(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    viewModel = viewModel,
+                    isShowFunction = { viewModel.showSideBar() },
+                    onNavigateBack = onNavigateBack
+                )
             }
         }
         // 세로일 경우
@@ -68,7 +79,12 @@ fun SideBar(
                 Row (
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    MenuBar(imageVector = Icons.Default.KeyboardArrowDown, viewModel = viewModel, isShowFunction = { viewModel.notShowSideBar() })
+                    MenuBar(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        viewModel = viewModel,
+                        isShowFunction = { viewModel.notShowSideBar() },
+                        onNavigateBack = onNavigateBack
+                    )
                 }
                 if (isSideBarMenu) {
                     CreateButtonList(
@@ -86,7 +102,12 @@ fun SideBar(
             Row(
                 modifier = modifier.fillMaxWidth()
             ) {
-                MenuBar(imageVector = Icons.Default.KeyboardArrowUp, viewModel = viewModel, isShowFunction = { viewModel.showSideBar() })
+                MenuBar(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    viewModel = viewModel,
+                    isShowFunction = { viewModel.showSideBar() },
+                    onNavigateBack = onNavigateBack
+                )
             }
         }
     }
