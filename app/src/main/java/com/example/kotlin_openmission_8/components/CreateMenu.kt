@@ -1,11 +1,17 @@
 package com.example.kotlin_openmission_8.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,14 +26,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
+import com.github.skydoves.colorpicker.compose.AlphaSlider
+import com.github.skydoves.colorpicker.compose.BrightnessSlider
+import com.github.skydoves.colorpicker.compose.ColorEnvelope
+import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 @Composable
 fun CreateMenu(
     viewModel: Components
 ) {
+    // 컴포넌트
     val component by viewModel.component.collectAsState()
 
     // component의 x,y 값 데이터를 불러옴
@@ -38,6 +51,13 @@ fun CreateMenu(
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     // component의 텍스트 데이터를 불러옴
     var text by remember { mutableStateOf(component.text) }
+
+    // ui에서 관리할 색
+    var mySelectedColor by remember { mutableStateOf(Color.Red) }
+    // 색 조작하기 위한 컨트롤러
+    val controller = rememberColorPickerController()
+    //
+    var showColor by remember { mutableStateOf(false) }
 
     // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
     // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
@@ -82,6 +102,57 @@ fun CreateMenu(
                 label = { Text("Text") }
             )
         }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .padding(horizontal = 32.dp, vertical = 16.dp)
+                .border(1.dp, Color.Black, RoundedCornerShape(15.dp))
+                .background(mySelectedColor, shape = RoundedCornerShape(15.dp))
+                .clickable{
+                    showColor = !showColor
+                }
+        )
+        if (showColor) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .border(width = 2.dp, color = Color.Black, shape = RoundedCornerShape(15.dp))
+            ) {
+
+                // 2. 메인 색상 선택기
+                HsvColorPicker(
+                    modifier = Modifier
+                        .padding(all = 5.dp)
+                        .height(150.dp), // 크기 조절
+                    controller = controller,
+                    onColorChanged = { colorEnvelope: ColorEnvelope ->
+                        mySelectedColor = colorEnvelope.color
+                    }
+                )
+
+                // 3. 투명도 슬라이더
+                AlphaSlider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 10.dp)
+                        .height(25.dp),
+                    controller = controller
+                )
+
+                // 4. 명도 슬라이더
+                BrightnessSlider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 10.dp)
+                        .height(25.dp),
+                    controller = controller
+                )
+
+            }
+        }
+
         Row (
             modifier = Modifier.padding(start = 30.dp, end = 30.dp, top = 10.dp, bottom = 10.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
