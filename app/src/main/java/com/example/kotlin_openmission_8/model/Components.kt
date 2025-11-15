@@ -3,6 +3,7 @@ package com.example.kotlin_openmission_8.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlin_openmission_8.BuildConfig
+import com.example.kotlin_openmission_8.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
@@ -60,13 +61,23 @@ class Components(private val client: HttpClient): ViewModel() {
 
 
     fun createCanvas() {
-        viewModelScope.launch {  {
+        viewModelScope.launch {
             try {
                 // /create-canvas API를 호출
-                val response: CreateCanvasResponse = client.post({"${BASE_URL}/create-canvas"}).body()
+                val response: CreateCanvasResponse =
+                    client.post({ "${BASE_URL}/create-canvas" }).body()
+                _currentRoomId.value = response.roomId
+                _currentWebUrl.value = response.url
+
+                println("새 캔버스 생성 성공: ${response.roomId}")
+
+                connectWebSocket(response.roomId)
+            }catch (e: Exception) {
+                    println("새 캔버스 생성 실패: ${e.message}")
+                }
             }
-        } }
-    }
+        }
+
     private suspend fun sendCommand(component: Component, logTag: String) {
         try {
             val response = client.post("$BASE_URL/command") {
