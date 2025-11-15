@@ -72,6 +72,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation("com.github.skydoves:colorpicker-compose:1.1.2")
+
     // --- Ktor Client 의존성 추가 시작 ---
     // (버전은 libs.versions.toml에 정의된 것을 사용하거나 직접 입력하세요. 예: "3.3.1")
     implementation("io.ktor:ktor-client-core:3.3.1")

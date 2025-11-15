@@ -45,7 +45,7 @@ fun MainScreen(context: Context, viewModel: Components) {
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(if (isShowSideBar) 0.75f else 0.9f)
+                        .weight(if (isShowSideBar) 0.70f else 0.95f)
                         .fillMaxSize()
                         .background(Color(0xFFF1F1F1))
                         .padding(16.dp), // 캔버스 주위의 여백
@@ -65,9 +65,9 @@ fun MainScreen(context: Context, viewModel: Components) {
                     context = context,
                     viewModel = viewModel,
                     modifier = if (isShowSideBar) {
-                        Modifier.weight(0.25f)
+                        Modifier.weight(0.3f)
                     } else {
-                        Modifier.weight(0.1f)
+                        Modifier.weight(0.05f)
                     },
                     isShowSideBar = isShowSideBar,
                     isLandscape = isLandscape
