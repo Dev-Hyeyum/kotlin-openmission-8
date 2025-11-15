@@ -31,6 +31,13 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _component = MutableStateFlow(Component(action = ComponentAction.Create, type = ComponentType.Dummy))
     val component: StateFlow<Component> = _component.asStateFlow()
 
+    // 현재 입장한 캔버스의 ID
+    private val _currentRoomId = MutableStateFlow<String?>(null)
+    val currentRoomId: StateFlow<String?> = _currentRoomId.asStateFlow()
+    // 사용자에게 제공된 웹 URL
+    private val _currentWebUrl = MutableStateFlow<String?>(null)
+    val currentWebUrl: StateFlow<String?> = _currentWebUrl.asStateFlow()
+
     // websocket 접속 상태
     private var isConnected = false
 
