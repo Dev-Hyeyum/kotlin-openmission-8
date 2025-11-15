@@ -34,5 +34,11 @@ data class Component(
     var width: Float = 200f,
     var height: Float = 150f,
 
-    val style: Map<String, String>? = null
+    val style: ComponentStyle = ComponentStyle(
+        fontColor = "#FF000000",
+        fontFamily = "Default",
+        fontSize = 12.0f,
+        fontWeight = "Normal",
+        backgroundColor = "#FFFFFFFF"
+    )
 )
