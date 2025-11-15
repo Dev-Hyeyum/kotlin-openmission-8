@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlin_openmission_8.BuildConfig
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -17,6 +18,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+
+@Serializable
+private data class CreateCanvasResponse(
+    val roomId: String,
+    val url: String
+)
 
 class Components(private val client: HttpClient): ViewModel() {
     // 컴포넌트의 상태
@@ -48,6 +58,15 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _isSideBarMenu = MutableStateFlow(true)
     val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
 
+
+    fun createCanvas() {
+        viewModelScope.launch {  {
+            try {
+                // /create-canvas API를 호출
+                val response: CreateCanvasResponse = client.post({"${BASE_URL}/create-canvas"}).body()
+            }
+        } }
+    }
     private suspend fun sendCommand(component: Component, logTag: String) {
         try {
             val response = client.post("$BASE_URL/command") {
