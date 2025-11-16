@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 import java.util.*
 
 // object 싱글톤에서 일반 클래스로 변환
-class Room {
+class Room(private val roomId: String) {
     // 이 'Room' 만의 '개인' 변수들
     private val connections = Collections.synchronizedSet(LinkedHashSet<WebSocketSession>())
 
@@ -61,5 +61,18 @@ class Room {
     fun onLeave(session: WebSocketSession) {
         connections.remove(session)
         println("[WebSocket] 클라이언트 연결 끊김: ${session.hashCode()}. (총 ${connections.size}명)")
+    }
+
+    suspend fun closeAllConnections() {
+        val reason = CloseReason(CloseReason.Codes.NORMAL, "Room '$roomId'가 서버에 의해 닫혔습니다.")
+        connections.forEach { session ->
+            try {
+                session.close(reason)
+            } catch (e: Exception) {
+                // 이미 닫힌 연결 등은 무시
+            }
+        }
+        connections.clear()
+        println("[$roomId] 모든 연결을 닫았습니다.")
     }
 }
