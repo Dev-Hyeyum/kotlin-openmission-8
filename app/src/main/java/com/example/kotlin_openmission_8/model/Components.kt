@@ -182,11 +182,7 @@ class Components(private val client: HttpClient): ViewModel() {
                                 }
                             } catch (e: Exception) {
                                 println("⚠️ 메시지 파싱 오류: ${e.message}")
-                            } finally {
-                                isConnected = false
-                                _currentRoomId.value = null
-                                _currentWebUrl.value = null
-                            } // finally 부분은 예외 발생과 관계없이 실행됩니다.
+                            }
                         }
                     }
                 }
@@ -194,6 +190,8 @@ class Components(private val client: HttpClient): ViewModel() {
                 println("❌ WebSocket 연결 실패: ${e.message}")
             } finally {
                 isConnected = false
+                _currentRoomId.value = null
+                _currentWebUrl.value = null
                 println("🔌 WebSocket 연결 종료 및 플래그 초기화")
             }
         }
