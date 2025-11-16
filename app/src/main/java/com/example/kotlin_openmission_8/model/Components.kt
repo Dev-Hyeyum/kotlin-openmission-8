@@ -3,7 +3,9 @@ package com.example.kotlin_openmission_8.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlin_openmission_8.BuildConfig
+import com.example.kotlin_openmission_8.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -17,6 +19,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+
+@Serializable
+private data class CreateCanvasResponse(
+    val roomId: String,
+    val url: String
+)
 
 class Components(private val client: HttpClient): ViewModel() {
     // 컴포넌트의 상태
@@ -31,6 +42,13 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _component = MutableStateFlow(Component(action = ComponentAction.Create, type = ComponentType.Dummy))
     val component: StateFlow<Component> = _component.asStateFlow()
 
+    // 현재 입장한 캔버스의 ID
+    private val _currentRoomId = MutableStateFlow<String?>(null)
+    val currentRoomId: StateFlow<String?> = _currentRoomId.asStateFlow()
+    // 사용자에게 제공된 웹 URL
+    private val _currentWebUrl = MutableStateFlow<String?>(null)
+    val currentWebUrl: StateFlow<String?> = _currentWebUrl.asStateFlow()
+
     // websocket 접속 상태
     private var isConnected = false
 
@@ -41,9 +59,33 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _isSideBarMenu = MutableStateFlow(true)
     val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
 
+
+    fun createCanvas() {
+        viewModelScope.launch {
+            try {
+                // /create-canvas API를 호출
+                val response: CreateCanvasResponse =
+                    client.post("${BASE_URL}/create-canvas").body()
+                _currentRoomId.value = response.roomId
+                _currentWebUrl.value = response.url
+
+                println("새 캔버스 생성 성공: ${response.roomId}")
+
+                connectWebSocket(response.roomId)
+            }catch (e: Exception) {
+                println("새 캔버스 생성 실패: ${e.message}")
+            }
+        }
+    }
+
     private suspend fun sendCommand(component: Component, logTag: String) {
+        val roomId = _currentRoomId.value ?: run {
+            println("$logTag 실패: Room ID가 없습니다.")
+            return
+        }
+
         try {
-            val response = client.post("$BASE_URL/command") {
+            val response = client.post("$BASE_URL/command/$roomId") {
                 contentType(ContentType.Application.Json)
                 setBody(component)
             }
@@ -115,14 +157,16 @@ class Components(private val client: HttpClient): ViewModel() {
         }
     }
 
-    fun connectWebSocket() {
+    // 이제 roomId를 인자로 받도록 수정했습니다.
+    fun connectWebSocket(roomId: String) {
         if(isConnected) return
         isConnected = true
 
         viewModelScope.launch {
             try {
-                client.webSocket(WS_URL) {
-                    println("✅ WebSocket 연결 성공")
+                // URL을 RoomId를 사용하도록 변경
+                client.webSocket("$WS_URL/$roomId") {
+                    println("✅ WebSocket 연결 성공 (Room: $roomId)")
                     for (frame in incoming) {
                         if (frame is Frame.Text) {
                             val message = frame.readText()
@@ -151,6 +195,8 @@ class Components(private val client: HttpClient): ViewModel() {
                 println("❌ WebSocket 연결 실패: ${e.message}")
             } finally {
                 isConnected = false
+                _currentRoomId.value = null
+                _currentWebUrl.value = null
                 println("🔌 WebSocket 연결 종료 및 플래그 초기화")
             }
         }
