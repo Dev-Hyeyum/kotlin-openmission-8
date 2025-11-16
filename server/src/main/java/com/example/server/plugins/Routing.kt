@@ -33,32 +33,32 @@ fun Application.configureRouting() {
             )
         )
     }
-        post("/command/{roomId}") {
-            //  URL에서 roomId를 가져옵니다.
-            val roomId = call.parameters["roomId"]
-                ?: return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    mapOf("status" to "Error", "message" to "Room ID가 없습니다.")
-                )
+    post("/command/{roomId}") {
+        //  URL에서 roomId를 가져옵니다.
+        val roomId = call.parameters["roomId"]
+            ?: return@post call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("status" to "Error", "message" to "Room ID가 없습니다.")
+            )
 
-            //  캔버스 매니저에게 해당 roomId의 room을 요청
-            val room = CanvasManager.getRoom(roomId)
-                ?: return@post call.respond(
-                    HttpStatusCode.NotFound,
-                    mapOf("status" to "Error", "message" to "Room을 찾을 수 없습니다.")
-                )
+        //  캔버스 매니저에게 해당 roomId의 room을 요청
+        val room = CanvasManager.getRoom(roomId)
+            ?: return@post call.respond(
+                HttpStatusCode.NotFound,
+                mapOf("status" to "Error", "message" to "Room을 찾을 수 없습니다.")
+            )
 
-            // 해당 room의 broadcastCommand를 호출
-            try {
-                val command = call.receive<Component>()
-                room.broadcastCommand(command)
-                call.respond(mapOf("status" to "OK"))
-            } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    mapOf("status" to "Error", "message" to e.message)
-                )
-            }
+        // 해당 room의 broadcastCommand를 호출
+        try {
+            val command = call.receive<Component>()
+            room.broadcastCommand(command)
+            call.respond(mapOf("status" to "OK"))
+        } catch (e: Exception) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("status" to "Error", "message" to e.message)
+            )
         }
+    }
     }
 }
