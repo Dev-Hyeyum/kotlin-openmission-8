@@ -62,6 +62,10 @@ class Components(private val client: HttpClient): ViewModel() {
 
     private var webSocketJob: Job? = null // ✨ 2. WebSocket 작업을 저장할 변수
 
+    // ✨ 1. [추가] "로비"가 보여줄 캔버스(룸) 목록 상태
+    private val _roomList = MutableStateFlow<List<String>>(emptyList())
+    val roomList: StateFlow<List<String>> = _roomList.asStateFlow()
+
 
     fun createCanvas() {
         viewModelScope.launch {
@@ -69,13 +73,39 @@ class Components(private val client: HttpClient): ViewModel() {
                 // /create-canvas API를 호출
                 val response: CreateCanvasResponse =
                     client.post("${BASE_URL}/create-canvas").body()
-                _currentRoomId.value = response.roomId
-                _currentWebUrl.value = response.url
 
                 println("새 캔버스 생성 성공: ${response.roomId}")
-                loadBoard(response.roomId)
+                fetchRoomList()
             }catch (e: Exception) {
                 println("새 캔버스 생성 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchRoomList() {
+        viewModelScope.launch {
+            try {
+                // 1번에서 만든 서버 API 호출
+                val list = client.get("${BASE_URL}/rooms").body<List<String>>()
+                _roomList.value = list
+                println("룸 목록 로드 성공: ${list.size}개")
+            } catch (e: Exception) {
+                println("룸 목록 로드 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteCanvas(roomId: String) {
+        viewModelScope.launch {
+            try {
+                // 1. 서버에 DELETE 요청
+                client.delete("${BASE_URL}/canvas/$roomId")
+
+                // 2. 삭제 성공 시, 로컬 룸 목록 새로고침
+                fetchRoomList()
+                println("캔버스 삭제 요청 성공: $roomId")
+            } catch (e: Exception) {
+                println("캔버스 삭제 요청 실패: ${e.message}")
             }
         }
     }
@@ -93,6 +123,8 @@ class Components(private val client: HttpClient): ViewModel() {
 
         isConnected = true
         _currentRoomId.value = roomId // ⬅️ RoomId를 여기서 설정
+
+        _currentWebUrl.value = "localhost:8080/test.html?room=$roomId"
 
         // ✨ 6. 새 Job을 시작하고 변수에 저장
         webSocketJob = viewModelScope.launch {
@@ -215,8 +247,12 @@ class Components(private val client: HttpClient): ViewModel() {
                 }
             }
 
-            val updatedComponent = _components.value.first { it.id == id }
+            val updatedComponent = _components.value.firstOrNull { it.id == id }
 
+            if (updatedComponent == null) {
+                println("❌ updateComponent 실패: ID(${id})를 리스트에서 찾을 수 없습니다.")
+                return@launch // 버그 방지를 위해 함수 종료
+            }
             if (_component.value.id == id) {
                 _component.value = updatedComponent
             }
@@ -224,51 +260,6 @@ class Components(private val client: HttpClient): ViewModel() {
             val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
 
             sendCommand(updateCommand, "수정")
-        }
-    }
-
-    // 이제 roomId를 인자로 받도록 수정했습니다.
-    fun connectWebSocket(roomId: String) {
-        if(isConnected) return
-        isConnected = true
-
-        viewModelScope.launch {
-            try {
-                // URL을 RoomId를 사용하도록 변경
-                client.webSocket("$WS_URL/$roomId") {
-                    println("✅ WebSocket 연결 성공 (Room: $roomId)")
-                    for (frame in incoming) {
-                        if (frame is Frame.Text) {
-                            val message = frame.readText()
-                            try {
-                                if (message.trim().startsWith("[")) {
-                                    // 1. 초기 전체 리스트 수신
-                                    val allComponents = Json.decodeFromString<List<Component>>(message)
-                                    _components.value = allComponents
-                                    println("📦 초기 데이터 로드 완료: ${allComponents.size}개")
-
-                                    if (allComponents.isNotEmpty()) {
-                                        _component.value = allComponents.first()
-                                    }
-                                } else {
-                                    // 2. 단일 명령 수신
-                                    val command = Json.decodeFromString<Component>(message)
-                                    handleCommand(command)
-                                }
-                            } catch (e: Exception) {
-                                println("⚠️ 메시지 파싱 오류: ${e.message}")
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                println("❌ WebSocket 연결 실패: ${e.message}")
-            } finally {
-                isConnected = false
-                _currentRoomId.value = null
-                _currentWebUrl.value = null
-                println("🔌 WebSocket 연결 종료 및 플래그 초기화")
-            }
         }
     }
 
