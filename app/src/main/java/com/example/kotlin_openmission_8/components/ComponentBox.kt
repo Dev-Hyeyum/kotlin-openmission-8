@@ -2,6 +2,7 @@ package com.example.kotlin_openmission_8.components
 
 import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.Components
@@ -106,6 +108,7 @@ fun ComponentBox(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
+            .border(1.dp,Color.Black)
             .background(composeBackgroundColor)
             .pointerInput(Unit) {
                 awaitEachGesture {
