@@ -73,14 +73,19 @@ class Components(private val client: HttpClient): ViewModel() {
 
                 connectWebSocket(response.roomId)
             }catch (e: Exception) {
-                    println("새 캔버스 생성 실패: ${e.message}")
-                }
+                println("새 캔버스 생성 실패: ${e.message}")
             }
         }
+    }
 
     private suspend fun sendCommand(component: Component, logTag: String) {
+        val roomId = _currentRoomId.value ?: run {
+            println("$logTag 실패: Room ID가 없습니다.")
+            return
+        }
+
         try {
-            val response = client.post("$BASE_URL/command") {
+            val response = client.post("$BASE_URL/command/$roomId") {
                 contentType(ContentType.Application.Json)
                 setBody(component)
             }
