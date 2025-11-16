@@ -40,6 +40,7 @@ data class Component(
         fontFamily = "Default",
         fontSize = 12.0f,
         fontWeight = "Normal",
-        backgroundColor = "#FFFFFFFF"
+        backgroundColor = "#FFFFFFFF",
+        borderColor = "#FF000000",
     )
 )
