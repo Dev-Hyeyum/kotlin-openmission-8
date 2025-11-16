@@ -33,6 +33,29 @@
         // room ID가 포함된 주소로 웹소켓 연결을 수행
         const ws = new WebSocket(`ws://localhost:8080/ws/${roomId}`);
 
+        function aarrggbbToRgba(hex) {
+            hex = hex.replace('#', ''); // '#' 제거
+
+            // 6자리 (RRGGBB)가 오면, 투명도 100% (FF)를 맨 앞에 추가
+            if (hex.length === 6) {
+                hex = 'FF' + hex;
+            }
+
+            // 8자리 (AARRGGBB)가 아니면 오류
+            if (hex.length !== 8) {
+                console.warn("잘못된 AARRGGBB 형식:", hex);
+                return null; // (기본값)
+            }
+
+            const a = parseInt(hex.substring(0, 2), 16) / 255.0; // Alpha (투명도)
+            const r = parseInt(hex.substring(2, 4), 16); // Red
+            const g = parseInt(hex.substring(4, 6), 16); // Green
+            const b = parseInt(hex.substring(6, 8), 16); // Blue
+
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
+        }
+
+
         function applyStylesAndText(el, command) {
             el.style.position = 'absolute';
             el.style.top = (command.offsetY || 10) + 'px';
@@ -44,6 +67,7 @@
             if (command.text) {
                 el.innerText = command.text;
             }
+
             if (command.style) {
                 const style = command.style;
                 if (style.backgroundColor) el.style.backgroundColor = style.backgroundColor;
