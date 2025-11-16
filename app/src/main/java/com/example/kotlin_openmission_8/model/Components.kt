@@ -65,7 +65,7 @@ class Components(private val client: HttpClient): ViewModel() {
             try {
                 // /create-canvas API를 호출
                 val response: CreateCanvasResponse =
-                    client.post({ "${BASE_URL}/create-canvas" }).body()
+                    client.post("${BASE_URL}/create-canvas").body()
                 _currentRoomId.value = response.roomId
                 _currentWebUrl.value = response.url
 
