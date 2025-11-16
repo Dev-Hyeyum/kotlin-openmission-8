@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import kotlinx.coroutines.Job
 
 @Serializable
 private data class CreateCanvasResponse(
@@ -59,6 +60,8 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _isSideBarMenu = MutableStateFlow(true)
     val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
 
+    private var webSocketJob: Job? = null // ✨ 2. WebSocket 작업을 저장할 변수
+
 
     fun createCanvas() {
         viewModelScope.launch {
@@ -70,12 +73,79 @@ class Components(private val client: HttpClient): ViewModel() {
                 _currentWebUrl.value = response.url
 
                 println("새 캔버스 생성 성공: ${response.roomId}")
-
-                connectWebSocket(response.roomId)
+                loadBoard(response.roomId)
             }catch (e: Exception) {
                 println("새 캔버스 생성 실패: ${e.message}")
             }
         }
+    }
+
+    fun loadBoard(roomId: String) {
+        // 이미 같은 방에 접속해 있다면 중복 실행 방지
+        if (isConnected && _currentRoomId.value == roomId) return
+
+        // ✨ 5. [핵심] 기존에 연결된 Job(이전 방)이 있다면 취소!
+        webSocketJob?.cancel()
+
+        // 상태 초기화 (새 방에 들어가기 전)
+        _components.value = emptyList()
+        _component.value = Component(action = ComponentAction.Create, type = ComponentType.Dummy)
+
+        isConnected = true
+        _currentRoomId.value = roomId // ⬅️ RoomId를 여기서 설정
+
+        // ✨ 6. 새 Job을 시작하고 변수에 저장
+        webSocketJob = viewModelScope.launch {
+            try {
+                client.webSocket("$WS_URL/$roomId") {
+                    println("✅ WebSocket 연결 성공 (Room: $roomId)")
+                    for (frame in incoming) {
+                        if (frame is Frame.Text) {
+                            val message = frame.readText()
+                            try {
+                                if (message.trim().startsWith("[")) {
+                                    // 1. 초기 전체 리스트 수신
+                                    val allComponents = Json.decodeFromString<List<Component>>(message)
+                                    _components.value = allComponents
+                                    println("📦 초기 데이터 로드 완료: ${allComponents.size}개")
+
+                                    if (allComponents.isNotEmpty()) {
+                                        _component.value = allComponents.first()
+                                    }
+                                } else {
+                                    // 2. 단일 명령 수신
+                                    val command = Json.decodeFromString<Component>(message)
+                                    handleCommand(command)
+                                }
+                            } catch (e: Exception) {
+                                println("⚠️ 메시지 파싱 오류: ${e.message}")
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("❌ WebSocket 연결 실패: ${e.message}")
+            } finally {
+                isConnected = false
+                println("🔌 WebSocket 연결 종료 및 플래그 초기화")
+            }
+        }
+    }
+
+    fun leaveRoom() {
+        // WebSocket Job을 취소시킴 (위의 finally 블록이 실행됨)
+        webSocketJob?.cancel()
+        webSocketJob = null
+
+        // ✅ [추가] 뒤로 가기를 누르는 즉시 ID를 null로 만듭니다.
+        _currentRoomId.value = null
+        _currentWebUrl.value = null
+
+        // UI도 즉시 초기화
+        _components.value = emptyList()
+        _component.value = Component(action = ComponentAction.Create, type = ComponentType.Dummy)
+        _canvasScrollState.value = Pair(0f, 0f)
+        println("🚪 방을 나갑니다.")
     }
 
     private suspend fun sendCommand(component: Component, logTag: String) {
