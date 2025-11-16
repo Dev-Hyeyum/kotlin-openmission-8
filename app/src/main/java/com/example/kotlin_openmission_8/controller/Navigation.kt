@@ -31,7 +31,6 @@ fun MyAppNavigation(context: Context, viewModel: Components) {
             )
         }
 
-
         // 5. "detail" 경로(DetailScreen) 등록
         composable("detail") {
             CanvasScreen(
