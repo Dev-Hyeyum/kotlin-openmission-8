@@ -74,7 +74,7 @@ fun ComponentBox(
     // 사용자가 적게 움직였을 때 값을 무시하는 객체
     val touchSlop = LocalViewConfiguration.current.touchSlop
 
-    // --- ✨ 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역" ---
+    // 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역"
     val styleData = component.style
 
     // String -> Color (배경색)
@@ -110,7 +110,6 @@ fun ComponentBox(
             else -> FontFamily.Default
         }
     }
-    // --- (번역 끝) ---
 
     Box(
         modifier = Modifier
