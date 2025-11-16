@@ -66,6 +66,7 @@ fun MenuBar(
     }
     IconButton(
         onClick = {
+            viewModel.leaveRoom()
             onNavigateBack()
         }
     ) {
