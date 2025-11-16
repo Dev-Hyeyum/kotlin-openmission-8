@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.kotlin_openmission_8.screens.CanvasScreen
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.screens.HomeScreen
@@ -25,23 +27,35 @@ fun MyAppNavigation(context: Context, viewModel: Components) {
         composable("home") {
             HomeScreen(
                 viewModel = viewModel,
-                onNavigateToDetail = {
-                    navController.navigate("detail")
+                // ✅ 4. "캔버스 ID"를 받아서 이동하는 람다로 수정
+                onNavigateToCanvas = { boardId ->
+                    // 예: "main_canvas/a1b2c3" 경로로 이동
+                    navController.navigate("main_canvas/$boardId")
                 }
             )
         }
 
-
         // 5. "detail" 경로(DetailScreen) 등록
-        composable("detail") {
-            CanvasScreen(
-                context = context,
-                viewModel = viewModel,
-                onNavigateBack = {
-                    // 6. 뒤로 가기 명령
-                    navController.popBackStack()
-                }
-            )
+        composable(
+            route = "main_canvas/{boardId}",
+            arguments = listOf(navArgument("boardId") { type = NavType.StringType })
+        ) { backStackEntry ->
+
+            // 6. URL 경로에서 boardId를 추출
+            val boardId = backStackEntry.arguments?.getString("boardId")
+
+            if (boardId != null) {
+                // 7. CanvasScreen에 boardId와 navController 자체를 전달
+                CanvasScreen(
+                    context = context,
+                    viewModel = viewModel,
+                    boardId = boardId,
+                    navController = navController // ✅ 8. navController를 여기 전달
+                )
+            } else {
+                // boardId가 없는 경우 예외 처리
+                Text("오류: 캔버스 ID가 없습니다.")
+            }
         }
     }
 }

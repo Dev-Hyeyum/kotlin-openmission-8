@@ -2,6 +2,7 @@ package com.example.kotlin_openmission_8.screens
 
 import android.content.Context
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -15,12 +16,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.kotlin_openmission_8.components.MainContentArea
 import com.example.kotlin_openmission_8.components.SideBar
 import com.example.kotlin_openmission_8.model.Components
 
 @Composable
-fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> Unit) {
+fun CanvasScreen(
+    context: Context,
+    viewModel: Components,
+    boardId: String, // ✨ 2. NavHost로부터 boardId를 받도록 수정
+    navController: NavHostController // ✨ 2. onNavigateBack 대신 NavController를 받음
+) {
     // 디바이스의 회전 감지
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -30,6 +37,16 @@ fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> 
 
     val isShowSideBar by viewModel.isSideBarExpanded.collectAsState()
 
+    LaunchedEffect(boardId) {
+        viewModel.loadBoard(boardId)
+    }
+
+    BackHandler {
+        // 1. ViewModel에게 방을 나간다고 알림 (WebSocket 종료)
+        viewModel.leaveRoom()
+        // 2. Navigation을 통해 이전 화면(HomeScreen)으로 돌아감
+        navController.popBackStack()
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -67,7 +84,10 @@ fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> 
                     },
                     isShowSideBar = isShowSideBar,
                     isLandscape = isLandscape,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = {
+                        viewModel.leaveRoom()
+                        navController.popBackStack()
+                    }
                 )
             }
         }
@@ -104,7 +124,10 @@ fun CanvasScreen(context: Context, viewModel: Components, onNavigateBack: () -> 
                     },
                     isShowSideBar = isShowSideBar,
                     isLandscape = isLandscape,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = {
+                        viewModel.leaveRoom()
+                        navController.popBackStack()
+                    }
                 )
             }
         }

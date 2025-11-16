@@ -116,7 +116,7 @@ fun ComponentBox(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
-            .background(Color.Blue)
+            .background(composeBackgroundColor)
             .pointerInput(Unit) {
                 awaitEachGesture {
                     awaitFirstDown()
