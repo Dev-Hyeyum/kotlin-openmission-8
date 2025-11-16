@@ -65,13 +65,14 @@ fun CreateMenu(
     var fontColor by remember { mutableStateOf(Color(parseColor(component.style.fontColor))) }
     var backGroundColor by remember { mutableStateOf(Color(parseColor(component.style.backgroundColor))) }
     var fontFamily by remember { mutableStateOf(component.style.fontFamily) }
+    var borderColor by remember { mutableStateOf(Color(parseColor(component.style.borderColor))) }
 
     // 색 조작하기 위한 컨트롤러
     val fontColorController = rememberColorPickerController()
     val backGroundColorController = rememberColorPickerController()
-    //
     var showFontColor by remember { mutableStateOf(false) }
     var showBackGroundColor by remember { mutableStateOf(false) }
+    val borderColorController = rememberColorPickerController()
 
     // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
     // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
@@ -88,6 +89,7 @@ fun CreateMenu(
         try {
             fontColor = Color(parseColor(component.style.fontColor))
             backGroundColor = Color(parseColor(component.style.backgroundColor))
+            borderColor = Color(parseColor(component.style.borderColor))
         } catch (e: Exception) { /* 기본값 유지 */ }
     }
 
