@@ -73,6 +73,7 @@ fun CreateMenu(
     var showFontColor by remember { mutableStateOf(false) }
     var showBackGroundColor by remember { mutableStateOf(false) }
     val borderColorController = rememberColorPickerController()
+    var showBorderColor by remember { mutableStateOf(false) }
 
     // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
     // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
@@ -241,7 +242,32 @@ fun CreateMenu(
                 }
             )
         }
-
+        // 경계선 색
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .padding(horizontal = 32.dp, vertical = 16.dp)
+                .border(1.dp, Color.Black, RoundedCornerShape(15.dp))
+                .background(borderColor, shape = RoundedCornerShape(15.dp))
+                .clickable{
+                    borderColorController.selectByColor(color = borderColor, fromUser = false)
+                    showBorderColor = !showBorderColor
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "선 색상",
+                color = if (borderColor.luminance() > 0.5) Color.Black else Color.White // ⬅️
+            )
+        }
+        if (showBorderColor) {
+            ColorPicker(controller = borderColorController,
+                onColorChanged = { newColor ->
+                    borderColor = newColor
+                }
+            )
+        }
         Row (
             modifier = Modifier.padding(start = 30.dp, end = 30.dp, top = 10.dp, bottom = 10.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -258,13 +284,15 @@ fun CreateMenu(
                 onClick = {
                     val newFontColorString = "#${fontColor.toArgb().toUInt().toString(16)}"
                     val newBackColorString = "#${backGroundColor.toArgb().toUInt().toString(16)}"
+                    val newBorderColorString = "#${borderColor.toArgb().toUInt().toString(16)}"
 
                     val newStyle = component.style.copy(
                         fontWeight = fontWeight,
                         fontSize = fontSize,
                         fontFamily = fontFamily,
                         fontColor = newFontColorString,
-                        backgroundColor = newBackColorString
+                        backgroundColor = newBackColorString,
+                        borderColor = newBorderColorString,
                     )
                     viewModel.updateComponent(
                         id = component.id,
