@@ -40,6 +40,7 @@ data class Component(
         fontSize = 20.0f,
         fontWeight = "Normal",
         backgroundColor = "#FFFFFFFF",
-        borderColor = "#FF000000"
+        borderColor = "#FF000000",
+        borderRadius = 0.0f,
     )
 )
