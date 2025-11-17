@@ -4,6 +4,10 @@ import com.example.server.CanvasManager
 import com.example.server.models.Component
 import io.ktor.server.application.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -11,10 +15,17 @@ import io.ktor.server.routing.*
 import java.io.File
 
 fun Application.configureRouting() {
+
+    val thumbnailDir = File("uploads/thumbnails")
+    if (!thumbnailDir.exists()) {
+        thumbnailDir.mkdirs()
+    }
+
     routing {
         // resources/static 폴더를 호스팅하는 설정 추가
         // http://localhost:8080/test.html 로 접속
         staticResources("/", "static")
+        staticFiles("/thumbnails", thumbnailDir)
 
         get("/test.html") {
             // 1. URL 파라미터에서 'room' ID를 가져옵니다.
@@ -104,6 +115,28 @@ fun Application.configureRouting() {
                     mapOf("status" to "Error", "message" to e.message)
                 )
             }
+        }
+
+        post("/upload-thumbnail/{roomId}") {
+            val roomId = call.parameters["roomId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+
+            val multipart = call.receiveMultipart()
+
+            multipart.forEachPart { part ->
+                if (part is PartData.FileItem) {
+                    // ✨ 3. [수정] 파일을 위에서 만든 thumbnailDir 폴더에 저장합니다.
+                    val fileName = "$roomId.png"
+                    val file = File(thumbnailDir, fileName)
+
+                    part.streamProvider().use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+                part.dispose()
+            }
+            call.respond(HttpStatusCode.OK)
         }
     }
 }
