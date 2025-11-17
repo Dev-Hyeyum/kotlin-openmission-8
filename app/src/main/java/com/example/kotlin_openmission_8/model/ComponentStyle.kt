@@ -10,5 +10,6 @@ data class ComponentStyle(
     var fontSize: Float = 20.0f,
     var fontColor: String = "#FF000000",
     var backgroundColor: String = "#FFFFFFFF",
-    var borderColor: String = "#FF000000"
+    var borderColor: String = "#FF000000",
+    var borderRadius: Float = 0.0f
 )

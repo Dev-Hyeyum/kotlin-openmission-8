@@ -76,7 +76,7 @@ fun CreateMenu(
     var showBackGroundColor by remember { mutableStateOf(false) }
     val borderColorController = rememberColorPickerController()
     var showBorderColor by remember { mutableStateOf(false) }
-
+    var borderRadius by remember { mutableStateOf(component.style.borderRadius) }
     // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
     // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
     LaunchedEffect(component) {
@@ -202,6 +202,15 @@ fun CreateMenu(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
+        OutlinedTextField(
+            value = borderRadius.toString(),
+            onValueChange = {
+                borderRadius = it.toFloatOrNull() ?: borderRadius
+            },
+            label = { Text("Border Radius (px)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
         // 글씨 색
         Box(
             modifier = Modifier
@@ -305,6 +314,7 @@ fun CreateMenu(
                         fontColor = newFontColorString,
                         backgroundColor = newBackColorString,
                         borderColor = newBorderColorString,
+                        borderRadius = borderRadius,
                     )
                     viewModel.updateComponent(
                         id = component.id,

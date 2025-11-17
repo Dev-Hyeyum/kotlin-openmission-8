@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,16 +61,16 @@ fun ComponentBox(
         text = component.text
     }
 
-    // component의 높이와 너비를 dp 단위로 변경
+    // dp 단위로 변경
     val boxWidthDp = with(density) { boxWidth.toDp() }
     val boxHeightDp = with(density) { boxHeight.toDp() }
-
     // 사용자가 적게 움직였을 때 값을 무시하는 객체
     val touchSlop = LocalViewConfiguration.current.touchSlop
 
-    // 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역"
+    // ViewModel의 스타일 데이터를 Compose 객체로
     val styleData = component.style
-
+    // dp 단위로 변경
+    val composeBorderRadius = styleData.borderRadius.dp
     // String -> Color (배경색)
     val composeBackgroundColor = remember(styleData.backgroundColor) {
         try { Color(parseColor(styleData.backgroundColor)) }
@@ -113,8 +114,15 @@ fun ComponentBox(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
-            .border(1.dp, composeBorderColor)
-            .background(composeBackgroundColor)
+            .border(
+                1.dp,
+                composeBorderColor,
+                shape = RoundedCornerShape(composeBorderRadius),
+                )
+            .background(
+                composeBackgroundColor,
+                shape = RoundedCornerShape(composeBorderRadius)
+            )
             .pointerInput(Unit) {
                 awaitEachGesture {
                     awaitFirstDown()
