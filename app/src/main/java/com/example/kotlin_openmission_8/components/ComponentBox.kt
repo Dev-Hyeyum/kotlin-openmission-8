@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.Components
 import kotlin.math.roundToInt
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun ComponentBox(
@@ -104,11 +105,15 @@ fun ComponentBox(
         }
     }
 
+    val composeBorderColor = remember(styleData.borderColor) {
+        try { Color(styleData.borderColor.toColorInt()) }
+        catch (e: Exception) { Color.Gray } // 기본값
+    }
     Box(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
-            .border(1.dp,Color.Black)
+            .border(1.dp, composeBorderColor)
             .background(composeBackgroundColor)
             .pointerInput(Unit) {
                 awaitEachGesture {
