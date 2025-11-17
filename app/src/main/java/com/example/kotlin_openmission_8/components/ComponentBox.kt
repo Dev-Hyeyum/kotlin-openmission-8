@@ -34,7 +34,6 @@ import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.Components
 import kotlin.math.roundToInt
 import androidx.core.graphics.toColorInt
-
 @Composable
 fun ComponentBox(
     component: Component,
@@ -84,8 +83,9 @@ fun ComponentBox(
     }
 
     // Float -> TextUnit (글꼴 크기)
-    val composeFontSize = styleData.fontSize.sp
-
+    val composeFontSize = with(density) {
+        styleData.fontSize.toSp()
+    }
     // String -> FontWeight (글꼴 두께)
     val composeFontWeight = remember(styleData.fontWeight) {
         when (styleData.fontWeight) {
