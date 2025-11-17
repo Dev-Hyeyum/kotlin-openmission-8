@@ -1,5 +1,6 @@
 package com.example.kotlin_openmission_8.model
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlin_openmission_8.BuildConfig
@@ -22,7 +23,14 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 
 @Serializable
 private data class CreateCanvasResponse(
@@ -52,6 +60,36 @@ class Components(private val client: HttpClient): ViewModel() {
 
     // websocket 접속 상태
     private var isConnected = false
+
+    suspend fun uploadThumbnail(roomId: String, bitmap: Bitmap) {
+        withContext(Dispatchers.IO) { // 백그라운드 스레드에서 실행
+            try {
+                // 1. Bitmap -> ByteArray (PNG) 변환
+                val stream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream) // 품질 80
+                val byteArray = stream.toByteArray()
+
+                // 2. 서버로 전송
+                client.post("$BASE_URL/upload-thumbnail/$roomId") {
+                    setBody(
+                        MultiPartFormDataContent(
+                        formData {
+                            append("image", byteArray, Headers.build {
+                                append(HttpHeaders.ContentType, "image/png")
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    "filename=\"thumbnail.png\""
+                                )
+                            })
+                        }
+                    ))
+                }
+                println("썸네일 업로드 성공")
+            } catch (e: Exception) {
+                println("썸네일 업로드 실패: ${e.message}")
+            }
+        }
+    }
 
     // sideBar 상태
     private val _isSideBarExpanded = MutableStateFlow(true) // 초기값 true
