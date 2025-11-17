@@ -9,5 +9,6 @@ data class ComponentStyle(
     var fontWeight: String = "Normal", // Normal, Bold, Medium, Light,
     var fontSize: Float = 12.0f,
     var fontColor: String = "#FF000000",
-    var backgroundColor: String = "#FFFFFFFF"
+    var backgroundColor: String = "#FFFFFFFF",
+    val borderColor: String = "#FF000000"
 )

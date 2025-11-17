@@ -2,22 +2,15 @@ package com.example.kotlin_openmission_8.components
 
 import android.graphics.Color.parseColor
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,11 +28,12 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kotlin_openmission_8.model.Component
-import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
 import kotlin.math.roundToInt
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun ComponentBox(
@@ -74,7 +68,7 @@ fun ComponentBox(
     // 사용자가 적게 움직였을 때 값을 무시하는 객체
     val touchSlop = LocalViewConfiguration.current.touchSlop
 
-    // --- ✨ 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역" ---
+    // 1. ViewModel의 스타일 데이터를 Compose 객체로 "번역"
     val styleData = component.style
 
     // String -> Color (배경색)
@@ -110,12 +104,16 @@ fun ComponentBox(
             else -> FontFamily.Default
         }
     }
-    // --- (번역 끝) ---
 
+    val composeBorderColor = remember(styleData.borderColor) {
+        try { Color(styleData.borderColor.toColorInt()) }
+        catch (e: Exception) { Color.Gray } // 기본값
+    }
     Box(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
+            .border(1.dp, composeBorderColor)
             .background(composeBackgroundColor)
             .pointerInput(Unit) {
                 awaitEachGesture {
