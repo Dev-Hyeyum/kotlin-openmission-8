@@ -119,7 +119,10 @@ fun ComponentBox(
                 composeBorderColor,
                 shape = RoundedCornerShape(composeBorderRadius),
                 )
-            .background(composeBackgroundColor)
+            .background(
+                composeBackgroundColor,
+                shape = RoundedCornerShape(composeBorderRadius)
+            )
             .pointerInput(Unit) {
                 awaitEachGesture {
                     awaitFirstDown()
