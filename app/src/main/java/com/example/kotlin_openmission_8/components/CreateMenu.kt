@@ -314,6 +314,7 @@ fun CreateMenu(
                         fontColor = newFontColorString,
                         backgroundColor = newBackColorString,
                         borderColor = newBorderColorString,
+                        borderRadius = borderRadius,
                     )
                     viewModel.updateComponent(
                         id = component.id,
