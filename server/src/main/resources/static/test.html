@@ -66,7 +66,10 @@
             el.style.left = (command.offsetX || 10) + 'px';
             el.style.width = (command.width || 200) + 'px';
             el.style.height = (command.height || 150) + 'px';
-            // el.style.border = '1px solid gray';
+
+            el.style.display = 'flex';
+            el.style.alignItems = 'center'; // 수직 중앙
+            el.style.justifyContent = 'center'; // 수평 중앙
 
             if (command.text) {
                 el.innerText = command.text;
@@ -86,7 +89,7 @@
                     el.style.borderColor = aarrggbbToRgba(style.borderColor);
                     el.style.borderWidth = '1px';
                     el.style.borderStyle = 'solid';
-        }
+                }
             }
         }
 
