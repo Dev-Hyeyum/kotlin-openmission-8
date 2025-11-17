@@ -37,7 +37,7 @@ data class Component(
     val style: ComponentStyle = ComponentStyle(
         fontColor = "#FF000000",
         fontFamily = "Default",
-        fontSize = 12.0f,
+        fontSize = 20.0f,
         fontWeight = "Normal",
         backgroundColor = "#FFFFFFFF",
         borderColor = "#FF000000"
