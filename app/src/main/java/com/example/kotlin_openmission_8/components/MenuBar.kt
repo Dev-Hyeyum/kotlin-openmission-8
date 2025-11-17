@@ -4,9 +4,13 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -44,71 +48,78 @@ fun MenuBar(
     var showShareDialog by remember { mutableStateOf(false) }
     val webUrl by viewModel.currentWebUrl.collectAsState()
 
-    // 접기 버튼
-    IconButton(
-        onClick = {
-            isShowFunction()
-        }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth() // 너비를 꽉 채움
+            .horizontalScroll(rememberScrollState()) // 가로 스크롤 가능하게 설정
     ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = "접기 버튼"
-        )
-    }
-    // 컴포넌트를 생성하는 메뉴를 여는 버튼
-    IconButton(
-        onClick = {
-            viewModel.isCreateMenu()
+// 접기 버튼
+        IconButton(
+            onClick = {
+                isShowFunction()
+            }
+        ) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = "접기 버튼"
+            )
         }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "컴포넌트를 설정하는 메뉴 버튼"
-        )
-    }
-    // 옵션 정하는 메뉴를 여는 버튼
-    IconButton(
-        onClick = {
-            viewModel.isEditMenu()
+        // 컴포넌트를 생성하는 메뉴를 여는 버튼
+        IconButton(
+            onClick = {
+                viewModel.isCreateMenu()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "컴포넌트를 설정하는 메뉴 버튼"
+            )
         }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Edit,
-            contentDescription = "컴포넌트를 설정하는 메뉴 버튼"
-        )
-    }
-    // 0,0으로 보드를 돌리는 함수
-    IconButton(
-        onClick = {
-            viewModel.resetCanvas()
+        // 옵션 정하는 메뉴를 여는 버튼
+        IconButton(
+            onClick = {
+                viewModel.isEditMenu()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "컴포넌트를 설정하는 메뉴 버튼"
+            )
         }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Home,
-            contentDescription = "스크린 좌표를 0,0 돌아가는 버튼"
-        )
-    }
-    IconButton(
-        onClick = {
-            showShareDialog = true // 팝업 띄우기
+        // 0,0으로 보드를 돌리는 함수
+        IconButton(
+            onClick = {
+                viewModel.resetCanvas()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Home,
+                contentDescription = "스크린 좌표를 0,0 돌아가는 버튼"
+            )
         }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Share,
-            contentDescription = "로컬호스트 링크 공유 버튼"
-        )
-    }
-    IconButton(
-        onClick = {
-            viewModel.leaveRoom()
-            onNavigateBack()
+        IconButton(
+            onClick = {
+                showShareDialog = true // 팝업 띄우기
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "로컬호스트 링크 공유 버튼"
+            )
         }
-    ) {
-        Icon(
-            imageVector = Icons.Default.Favorite,
-            contentDescription = "홈 화면으로 돌아가는 버튼"
-        )
+        IconButton(
+            onClick = {
+                viewModel.leaveRoom()
+                onNavigateBack()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "홈 화면으로 돌아가는 버튼"
+            )
+        }
     }
+
     if (showShareDialog) {
         // 3. 안드로이드 시스템(브라우저)에 접근하기 위해 Context 가져오기
         val context = LocalContext.current
