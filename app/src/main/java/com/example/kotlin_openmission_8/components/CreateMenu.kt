@@ -237,7 +237,7 @@ fun CreateMenu(
                     borderRadius = it.toFloatOrNull() ?: borderRadius
                 }
             },
-            label = { Text("Border Radius (px)") },
+            label = { Text("Border Radius") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
