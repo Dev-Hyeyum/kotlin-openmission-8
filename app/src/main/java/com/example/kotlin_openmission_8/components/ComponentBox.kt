@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -31,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -195,30 +198,33 @@ fun ComponentBox(
         )
 
         if (isSelected) {
-            Handle(modifier = Modifier.align(Alignment.TopStart))
-            Handle(modifier = Modifier.align(Alignment.TopCenter))
-            Handle(modifier = Modifier.align(Alignment.TopEnd))
-            Handle(modifier = Modifier.align(Alignment.CenterStart))
-            Handle(modifier = Modifier.align(Alignment.CenterEnd))
-            Handle(modifier = Modifier.align(Alignment.BottomStart))
-            Handle(modifier = Modifier.align(Alignment.BottomCenter))
-            Handle(modifier = Modifier.align(Alignment.BottomEnd))
+            Handle(alignment = Alignment.TopStart)
+            Handle(alignment = Alignment.TopCenter)
+            Handle(alignment = Alignment.TopEnd)
+            Handle(alignment = Alignment.CenterStart)
+            Handle(alignment = Alignment.CenterEnd)
+            Handle(alignment = Alignment.BottomStart)
+            Handle(alignment = Alignment.BottomCenter)
+            Handle(alignment = Alignment.BottomEnd)
         }
     }
 }
 
 @Composable
-private fun Handle(modifier: Modifier = Modifier) {
+private fun BoxScope.Handle(
+    alignment: Alignment,
+    size: Dp = 10.dp,
+    color: Color = Color.Blue
+) {
+    val bias = alignment as? BiasAlignment ?: return
     Box(
-        modifier = modifier
+        modifier = Modifier
+            .align(alignment)
             .offset(
-                x = 0.dp,
-                y = 0.dp
+                x = (size / 2) * bias.horizontalBias,
+                y = (size / 2) * bias.verticalBias
             )
-            .size(10.dp)
-            .clip(CircleShape)
-            .background(Color.White)
-            .border(1.dp, Color.Black, CircleShape)
-            .offset(x = (-5).dp, y = (-5).dp) // 핸들 중앙이 모서리에 오도록
+            .size(size)
+            .background(color, CircleShape)
     )
 }
