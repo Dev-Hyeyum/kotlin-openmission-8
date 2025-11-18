@@ -68,7 +68,6 @@ fun CreateMenu(
     var backGroundColor by remember { mutableStateOf(Color(parseColor(component.style.backgroundColor))) }
     var fontFamily by remember { mutableStateOf(component.style.fontFamily) }
     var borderColor by remember { mutableStateOf(Color(parseColor(component.style.borderColor))) }
-
     // 색 조작하기 위한 컨트롤러
     val fontColorController = rememberColorPickerController()
     val backGroundColorController = rememberColorPickerController()
@@ -85,7 +84,6 @@ fun CreateMenu(
         boxWidth = component.width
         boxHeight = component.height
         text = component.text
-
         fontSize = component.style.fontSize
         fontWeight = component.style.fontWeight
         fontFamily = component.style.fontFamily
@@ -101,25 +99,49 @@ fun CreateMenu(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 스타일 관련 편집 Field 추가하면 됨.
         OutlinedTextField(
             value = boxWidth.toString(),
-            onValueChange = { boxWidth = it.toFloatOrNull() ?: boxWidth },
-            label = { Text("Width") }
+            onValueChange = {
+                val value = boxWidth.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                // 소수점이 지워졌다면 변화를 반영하지 않음
+                } else {
+                    boxWidth = it.toFloatOrNull() ?: boxWidth
+                }
+            },
+            label = { Text("Width") },
         )
         OutlinedTextField(
             value = boxHeight.toString(),
-            onValueChange = { boxHeight = it.toFloatOrNull() ?: boxHeight },
+            onValueChange = {
+                val value = boxHeight.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                } else {
+                    boxHeight = it.toFloatOrNull() ?: boxHeight
+                }
+            },
             label = { Text("Height") }
         )
         OutlinedTextField(
             value = offsetX.toString(),
-            onValueChange = { offsetX = it.toFloatOrNull() ?: offsetX },
+            onValueChange = {
+                val value = offsetX.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                } else {
+                    offsetX = it.toFloatOrNull() ?: offsetX
+                }
+            },
             label = { Text("Offset X") }
         )
         OutlinedTextField(
             value = offsetY.toString(),
-            onValueChange = { offsetY = it.toFloatOrNull() ?: offsetY },
+            onValueChange = {
+                val value = offsetY.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                } else {
+                    offsetY = it.toFloatOrNull() ?: offsetY
+                }
+            },
             label = { Text("Offset Y") }
         )
         if (component.type == ComponentType.Text || component.type == ComponentType.Button) {
@@ -196,7 +218,11 @@ fun CreateMenu(
         OutlinedTextField(
             value = fontSize.toString(),
             onValueChange = {
-                fontSize = it.toFloatOrNull() ?: fontSize
+                val value = fontSize.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                } else {
+                    fontSize = it.toFloatOrNull() ?: fontSize
+                }
             },
             label = { Text("Font Size") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -205,9 +231,13 @@ fun CreateMenu(
         OutlinedTextField(
             value = borderRadius.toString(),
             onValueChange = {
-                borderRadius = it.toFloatOrNull() ?: borderRadius
+                val value = borderRadius.toString()
+                if (value.contains('.') && !it.contains('.') && value.replace(".", "") == it) {
+                } else {
+                    borderRadius = it.toFloatOrNull() ?: borderRadius
+                }
             },
-            label = { Text("Border Radius (px)") },
+            label = { Text("Border Radius") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
