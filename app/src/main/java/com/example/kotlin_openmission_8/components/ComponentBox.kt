@@ -193,6 +193,17 @@ fun ComponentBox(
             fontWeight = composeFontWeight,
             fontFamily = composeFontFamily
         )
+
+        if (isSelected) {
+            Handle(modifier = Modifier.align(Alignment.TopStart))
+            Handle(modifier = Modifier.align(Alignment.TopCenter))
+            Handle(modifier = Modifier.align(Alignment.TopEnd))
+            Handle(modifier = Modifier.align(Alignment.CenterStart))
+            Handle(modifier = Modifier.align(Alignment.CenterEnd))
+            Handle(modifier = Modifier.align(Alignment.BottomStart))
+            Handle(modifier = Modifier.align(Alignment.BottomCenter))
+            Handle(modifier = Modifier.align(Alignment.BottomEnd))
+        }
     }
 }
 
