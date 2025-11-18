@@ -237,14 +237,14 @@ fun ComponentBox(
         )
 
         if (isSelected) {
-            Handle(alignment = Alignment.TopStart)
-            Handle(alignment = Alignment.TopCenter)
-            Handle(alignment = Alignment.TopEnd)
-            Handle(alignment = Alignment.CenterStart)
-            Handle(alignment = Alignment.CenterEnd)
-            Handle(alignment = Alignment.BottomStart)
-            Handle(alignment = Alignment.BottomCenter)
-            Handle(alignment = Alignment.BottomEnd)
+            Handle(Alignment.TopStart, onDrag = { handleResize(Alignment.TopStart, it) })
+            Handle(Alignment.TopCenter, onDrag = { handleResize(Alignment.TopCenter, it) })
+            Handle(Alignment.TopEnd, onDrag = { handleResize(Alignment.TopEnd, it) })
+            Handle(Alignment.CenterStart, onDrag = { handleResize(Alignment.CenterStart, it) })
+            Handle(Alignment.CenterEnd, onDrag = { handleResize(Alignment.CenterEnd, it) })
+            Handle(Alignment.BottomStart, onDrag = { handleResize(Alignment.BottomStart, it) })
+            Handle(Alignment.BottomCenter, onDrag = { handleResize(Alignment.BottomCenter, it) })
+            Handle(Alignment.BottomEnd, onDrag = { handleResize(Alignment.BottomEnd, it) })
         }
     }
 }
