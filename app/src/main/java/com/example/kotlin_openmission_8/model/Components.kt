@@ -178,10 +178,6 @@ class Components(private val client: HttpClient): ViewModel() {
                                     val allComponents = Json.decodeFromString<List<Component>>(message)
                                     _components.value = allComponents
                                     println("📦 초기 데이터 로드 완료: ${allComponents.size}개")
-
-                                    if (allComponents.isNotEmpty()) {
-                                        _component.value = allComponents.first()
-                                    }
                                 } else {
                                     // 2. 단일 명령 수신
                                     val command = Json.decodeFromString<Component>(message)
