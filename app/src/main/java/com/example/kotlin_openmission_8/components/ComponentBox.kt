@@ -8,19 +8,24 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -28,6 +33,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +56,9 @@ fun ComponentBox(
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     // component의 텍스트 데이터를 불러옴
     var text by remember { mutableStateOf(component.text) }
+
+    val selectedComponent by viewModel.component.collectAsState()
+    val isSelected = component.id == selectedComponent.id
 
     // 외부(서버/ViewModel)에서 데이터가 변경되면 내부 상태도 갱신
     // component 키값이 바뀌면(즉, 리스트 내용이 갱신되면) 이 블록이 실행
@@ -187,5 +196,35 @@ fun ComponentBox(
             fontWeight = composeFontWeight,
             fontFamily = composeFontFamily
         )
+
+        if (isSelected) {
+            Handle(alignment = Alignment.TopStart)
+            Handle(alignment = Alignment.TopCenter)
+            Handle(alignment = Alignment.TopEnd)
+            Handle(alignment = Alignment.CenterStart)
+            Handle(alignment = Alignment.CenterEnd)
+            Handle(alignment = Alignment.BottomStart)
+            Handle(alignment = Alignment.BottomCenter)
+            Handle(alignment = Alignment.BottomEnd)
+        }
     }
+}
+
+@Composable
+private fun BoxScope.Handle(
+    alignment: Alignment,
+    size: Dp = 8.dp,
+    color: Color = Color.Green
+) {
+    val bias = alignment as? BiasAlignment ?: return
+    Box(
+        modifier = Modifier
+            .align(alignment)
+            .offset(
+                x = (size / 2) * bias.horizontalBias,
+                y = (size / 2) * bias.verticalBias
+            )
+            .size(size)
+            .background(color, CircleShape)
+    )
 }
