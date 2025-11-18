@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.offset
@@ -119,6 +120,44 @@ fun ComponentBox(
         try { Color(styleData.borderColor.toColorInt()) }
         catch (e: Exception) { Color.Gray } // 기본값
     }
+    val handleResize = { alignment: Alignment, dragAmount: Offset ->
+        val bias = alignment as? BiasAlignment
+        val hBias = bias?.horizontalBias ?: 0f // -1(Left), 0, 1(Right)
+        val vBias = bias?.verticalBias ?: 0f   // -1(Top), 0, 1(Bottom)
+
+        // 1. 가로 크기/위치 조절
+        if (hBias == -1f) { // 왼쪽 핸들
+            val newWidth = (boxWidth - dragAmount.x).coerceAtLeast(50f)
+            val widthChange = boxWidth - newWidth
+            if (newWidth > 50f) {
+                offsetX += widthChange
+                boxWidth = newWidth
+            }
+        } else if (hBias == 1f) { // 오른쪽 핸들
+            boxWidth = (boxWidth + dragAmount.x).coerceAtLeast(50f)
+        }
+
+        // 2. 세로 크기/위치 조절
+        if (vBias == -1f) { // 위쪽 핸들
+            val newHeight = (boxHeight - dragAmount.y).coerceAtLeast(50f)
+            val heightChange = boxHeight - newHeight
+            if (newHeight > 50f) {
+                offsetY += heightChange
+                boxHeight = newHeight
+            }
+        } else if (vBias == 1f) { // 아래쪽 핸들
+            boxHeight = (boxHeight + dragAmount.y).coerceAtLeast(50f)
+        }
+
+        // 3. 실시간 서버 업데이트 (드래그 중에도 반영)
+        viewModel.updateComponent(
+            id = component.id,
+            offsetX = offsetX,
+            offsetY = offsetY,
+            width = boxWidth,
+            height = boxHeight
+        )
+    }
     Box(
         modifier = Modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
@@ -198,14 +237,14 @@ fun ComponentBox(
         )
 
         if (isSelected) {
-            Handle(alignment = Alignment.TopStart)
-            Handle(alignment = Alignment.TopCenter)
-            Handle(alignment = Alignment.TopEnd)
-            Handle(alignment = Alignment.CenterStart)
-            Handle(alignment = Alignment.CenterEnd)
-            Handle(alignment = Alignment.BottomStart)
-            Handle(alignment = Alignment.BottomCenter)
-            Handle(alignment = Alignment.BottomEnd)
+            Handle(Alignment.TopStart, onDrag = { handleResize(Alignment.TopStart, it) })
+            Handle(Alignment.TopCenter, onDrag = { handleResize(Alignment.TopCenter, it) })
+            Handle(Alignment.TopEnd, onDrag = { handleResize(Alignment.TopEnd, it) })
+            Handle(Alignment.CenterStart, onDrag = { handleResize(Alignment.CenterStart, it) })
+            Handle(Alignment.CenterEnd, onDrag = { handleResize(Alignment.CenterEnd, it) })
+            Handle(Alignment.BottomStart, onDrag = { handleResize(Alignment.BottomStart, it) })
+            Handle(Alignment.BottomCenter, onDrag = { handleResize(Alignment.BottomCenter, it) })
+            Handle(Alignment.BottomEnd, onDrag = { handleResize(Alignment.BottomEnd, it) })
         }
     }
 }
@@ -214,7 +253,8 @@ fun ComponentBox(
 private fun BoxScope.Handle(
     alignment: Alignment,
     size: Dp = 8.dp,
-    color: Color = Color.Green
+    color: Color = Color.Green,
+    onDrag: (Offset) -> Unit
 ) {
     val bias = alignment as? BiasAlignment ?: return
     Box(
@@ -225,6 +265,14 @@ private fun BoxScope.Handle(
                 y = (size / 2) * bias.verticalBias
             )
             .size(size)
-            .background(color, CircleShape)
+            .clip(CircleShape) // 원 모양 클립
+            .background(color) // 배경색
+            .border(1.dp, Color.White, CircleShape) // 흰색 테두리 추가 (가시성 확보)
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume() // 이벤트 소비 (부모 드래그 방지)
+                    onDrag(dragAmount) // 리사이징 로직 실행
+                }
+            }
     )
 }
