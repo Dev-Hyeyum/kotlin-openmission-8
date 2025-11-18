@@ -195,3 +195,19 @@ fun ComponentBox(
         )
     }
 }
+
+@Composable
+private fun Handle(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .offset(
+                x = 0.dp,
+                y = 0.dp
+            )
+            .size(10.dp)
+            .clip(CircleShape)
+            .background(Color.White)
+            .border(1.dp, Color.Black, CircleShape)
+            .offset(x = (-5).dp, y = (-5).dp) // 핸들 중앙이 모서리에 오도록
+    )
+}
