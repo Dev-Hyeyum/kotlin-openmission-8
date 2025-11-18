@@ -213,8 +213,8 @@ fun ComponentBox(
 @Composable
 private fun BoxScope.Handle(
     alignment: Alignment,
-    size: Dp = 10.dp,
-    color: Color = Color.Blue
+    size: Dp = 8.dp,
+    color: Color = Color.Green
 ) {
     val bias = alignment as? BiasAlignment ?: return
     Box(
