@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,16 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.request.error
-import coil3.request.placeholder
 import com.example.kotlin_openmission_8.BuildConfig
-import com.example.kotlin_openmission_8.R
 
 @Composable
 fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
@@ -49,15 +49,13 @@ fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        val errorPainter = rememberVectorPainter(Icons.Default.Warning)
+        val placeHolderPainter = rememberVectorPainter(Icons.Default.Refresh)
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data("${BuildConfig.BASE_URL}/thumbnails/$roomId.png?t=${System.currentTimeMillis()}")
+                .data("${BuildConfig.BASE_URL}/uploads/$roomId/thumbnail.png?t=${System.currentTimeMillis()}")
                 .crossfade(true)
-                // ✨ [추가] 이미지가 없거나 로딩 실패 시 보여줄 기본 이미지
-                .error(R.drawable.img_default_thumbnail)
-                // ✨ [추가] 로딩 중에 보여줄 이미지 (선택 사항)
-                .placeholder(R.drawable.img_default_thumbnail)
-                // ✨ [추가] 에러 리스너: 왜 실패했는지 로그를 찍어줍니다.
                 .listener(
                     onStart = { println("이미지 로딩 시작: $roomId") },
                     onError = { _, result ->
@@ -69,6 +67,8 @@ fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
                 .build(),
             contentDescription = "썸네일",
             contentScale = ContentScale.Crop,
+            error = errorPainter,
+            placeholder = placeHolderPainter,
             modifier = Modifier
                 .size(100.dp)
                 .clip(RoundedCornerShape(4.dp))
@@ -85,7 +85,6 @@ fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = {
-                // 팝업 바깥을 클릭해도 닫히도록
                 showDialog = false
             },
             title = {
@@ -97,8 +96,8 @@ fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDeleteClick() // ✅ "삭제" 람다 실행
-                        showDialog = false  // 팝업 닫기
+                        onDeleteClick()
+                        showDialog = false
                     }
                 ) {
                     Text("삭제")
@@ -107,7 +106,7 @@ fun RoomItem(roomId: String, onClick: () -> Unit, onDeleteClick: () -> Unit) {
             dismissButton = {
                 TextButton(
                     onClick = {
-                        showDialog = false // 팝업 닫기
+                        showDialog = false
                     }
                 ) {
                     Text("취소")

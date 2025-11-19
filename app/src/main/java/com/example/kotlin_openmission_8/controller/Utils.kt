@@ -1,7 +1,7 @@
 package com.example.kotlin_openmission_8.controller
 
-import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.Build
 import android.os.Handler
@@ -13,14 +13,12 @@ import androidx.annotation.RequiresApi
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
+import android.graphics.Color as AndroidColor // 충돌 방지용 alias
+import androidx.core.graphics.createBitmap
 
 @RequiresApi(Build.VERSION_CODES.O)
 suspend fun captureView(view: View, window: Window): Bitmap = suspendCancellableCoroutine { continuation ->
-    val bitmap = Bitmap.createBitmap(
-        view.width,
-        view.height,
-        Bitmap.Config.ARGB_8888
-    )
+    val bitmap = createBitmap(view.width, view.height)
 
     val locationOfViewInWindow = IntArray(2)
     view.getLocationInWindow(locationOfViewInWindow)
@@ -47,4 +45,13 @@ suspend fun captureView(view: View, window: Window): Bitmap = suspendCancellable
     } catch (e: Exception) {
         continuation.resumeWithException(e)
     }
+}
+
+fun createDefaultCanvasBitmap(width: Int, height: Int): Bitmap {
+    // 썸네일이므로 작은 크기가 적당합니다. (예: 200x150)
+    val bitmap = createBitmap(width, height)
+    val canvas = Canvas(bitmap)
+    // 흰색으로 채우기
+    canvas.drawColor(AndroidColor.WHITE)
+    return bitmap
 }
