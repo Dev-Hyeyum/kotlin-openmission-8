@@ -13,12 +13,36 @@
             position: relative; /* 자식 요소(absolute)의 기준점 */
         }
 
+        .ui-control {
+            position: fixed; // 스크롤에 영향을 받지 않음
+            z-index: 9999;
+        }
+
+        // 다운로드 버튼 스타일
+        #downloadBtn {
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3DDC84;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #downloadBtn:hover {
+            background-color: #32b36b;
+        }
+
         p, button {
             margin: 0;
         }
     </style>
 </head>
 <body>
+
+<button id="downloadBtn" class="ui-control">📥 HTML 다운로드</button>
+
 <script>
     // URL에서 'room' 파라미터(방 ID)를 읽어오는 코드
     const urlParams = new URLSearchParams(window.location.search);
@@ -71,8 +95,6 @@
 
             if (command.style) {
                 const style = command.style;
-
-                //'AARRGGBB'를 'rgba()'로 변환
                 if (style.backgroundColor) el.style.backgroundColor = aarrggbbToRgba(style.backgroundColor);
                 if (style.fontColor) el.style.color = aarrggbbToRgba(style.fontColor);
                 if (style.fontSize) el.style.fontSize = style.fontSize + 'px';
