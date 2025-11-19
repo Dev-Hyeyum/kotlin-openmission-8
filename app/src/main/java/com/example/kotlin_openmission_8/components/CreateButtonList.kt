@@ -55,10 +55,7 @@ fun CreateButtonList(
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 버튼 목록
         LazyColumn(
-            // 이 LazyColumn이 버튼들을 감싸는 "박스"입니다.
-            // fillMaxHeight()가 없으므로 내용물 크기만큼만 차지합니다.
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -83,7 +80,6 @@ fun CreateButtonList(
                 }
             }
         }
-        // 이 Spacer가 LazyColumn을 위로 밀어 올리고 하단의 빈 공간을 만듭니다.
         Spacer(Modifier.weight(1f))
     }
 }
