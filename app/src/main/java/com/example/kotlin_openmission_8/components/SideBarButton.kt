@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +16,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -36,6 +41,7 @@ import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SideBarButton(
     context: Context,
@@ -46,7 +52,11 @@ fun SideBarButton(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var writeText by remember { mutableStateOf("") }
+    var selectedEventType by remember { mutableStateOf("SHOW_TOAST") }
     var eventMessage by remember { mutableStateOf("") }
+    var eventUrl by remember { mutableStateOf("") }
+
+    val eventOptions = remember { listOf("SHOW_TOAST", "REDIRECT_URL", "NONE") }
     val scope = rememberCoroutineScope() // ✨ CoroutineScope 가져오기
 
     val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -95,60 +105,94 @@ fun SideBarButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("컴포넌트 설정") }, // 타이틀을 더 포괄적으로 변경
+            title = { Text("버튼 이벤트 및 텍스트 설정") },
             text = {
                 Column {
+                    // 1. 컴포넌트 텍스트 필드 (Label)
                     TextField(
                         value = writeText,
-                        onValueChange = { newText -> writeText = newText },
-                        label = { Text("컴포넌트 텍스트 (Label)") },
+                        onValueChange = { writeText = it },
+                        label = { Text("버튼 텍스트 (Label)") },
                         singleLine = true
                     )
 
                     if (componentType == ComponentType.Button) {
-                        Divider(Modifier.padding(vertical = 12.dp))
+                        Divider(Modifier.padding(vertical = 8.dp))
                         Text("클릭 이벤트 설정", fontWeight = FontWeight.Bold)
 
-                        // 이벤트 메시지 입력 필드 (SHOW_TOAST의 내용)
-                        TextField(
-                            value = eventMessage,
-                            onValueChange = { eventMessage = it },
-                            label = { Text("토스트 메시지 내용") },
-                            singleLine = true
-                        )
-                        // (추후 URL 등 다른 EventType 필드 추가 가능)
+                        // 2. ✨ [필수] 이벤트 타입 선택 드롭다운
+                        ExposedDropdownMenuBox(
+                            expanded = selectedEventType.contains("EXPANDED"), // 임시 상태
+                            onExpandedChange = {
+                                // 토글 시 상태에 "EXPANDED"를 임시로 붙여서 확장 상태 제어
+                                selectedEventType = if (it) selectedEventType + "EXPANDED" else selectedEventType.replace("EXPANDED", "")
+                            },
+                            modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
+                        ) {
+                            TextField(
+                                modifier = Modifier.menuAnchor(),
+                                readOnly = true,
+                                value = selectedEventType.replace("EXPANDED", ""), // EXPANDED 제거 후 표시
+                                onValueChange = {},
+                                label = { Text("이벤트 종류") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = selectedEventType.contains("EXPANDED")) },
+                            )
+                            ExposedDropdownMenu(
+                                expanded = selectedEventType.contains("EXPANDED"),
+                                onDismissRequest = { selectedEventType = selectedEventType.replace("EXPANDED", "") }
+                            ) {
+                                eventOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            // 3. ✨ 이벤트 타입을 바꾸면 아래 필드가 바뀝니다.
+                                            selectedEventType = option
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // 4. ✨ [조건부] 선택된 타입에 따라 다른 필드 표시
+                        when (selectedEventType.replace("EXPANDED", "")) {
+                            "SHOW_TOAST" -> TextField(
+                                value = eventMessage,
+                                onValueChange = { eventMessage = it },
+                                label = { Text("토스트 메시지 내용") },
+                                singleLine = true
+                            )
+                            "REDIRECT_URL" -> TextField(
+                                value = eventUrl,
+                                onValueChange = { eventUrl = it },
+                                label = { Text("이동할 URL") },
+                                singleLine = true
+                            )
+                        }
                     }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val newComponent = if (componentType == ComponentType.Button) {
-                            val buttonStyle = ComponentStyle(
-                                backgroundColor = "#FF6DB7B1", // 연한 청록색 배경
-                                fontColor = "#FFFFFFFF", // 흰색 글씨
-                                borderRadius = 12.0f, // 12px 둥근 모서리
-                            )
+                        val buttonStyle = ComponentStyle(
+                            backgroundColor = "#FF6DB7B1", // 사이드바 버튼 색상과 유사
+                            fontColor = "#FFFFFFFF",       // 흰색 글씨
+                            borderRadius = 10.0f,         // 둥근 모서리 고정
+                        )
 
-                            val action = EventAction(
-                                type = "SHOW_TOAST", // (현재는 토스트로 고정)
-                                message = eventMessage
-                            )
-                            Component(
-                                action = ComponentAction.Create,
-                                type = componentType,
-                                text = writeText,
-                                onClickAction = action,
-                                style = buttonStyle
-                            )
-                        } else {
-                            // Text 타입/기타: 기본 텍스트만 전달
-                            Component(
-                                action = ComponentAction.Create,
-                                type = componentType,
-                                text = writeText
-                            )
+                        val action: EventAction? = when (selectedEventType.replace("EXPANDED", "")) {
+                            "SHOW_TOAST" -> EventAction(type = "SHOW_TOAST", message = eventMessage)
+                            "REDIRECT_URL" -> EventAction(type = "REDIRECT_URL", targetUrl = eventUrl)
+                            else -> null // NONE일 경우 Action 객체를 생성하지 않음
                         }
+
+                        val newComponent = Component(
+                            action = ComponentAction.Create,
+                            type = componentType,
+                            text = writeText,
+                            onClickAction = action,
+                            style = buttonStyle
+                        )
 
                         viewModel.postComponent(newComponent)
                         showDialog = false
