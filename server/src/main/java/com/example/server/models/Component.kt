@@ -42,5 +42,6 @@ data class Component(
         backgroundColor = "#FFFFFFFF",
         borderColor = "#FF000000",
         borderRadius = 0.0f,
-    )
+    ),
+    val onClickAction: EventAction? = null
 )
