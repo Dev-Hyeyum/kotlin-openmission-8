@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentAction
+import com.example.kotlin_openmission_8.model.ComponentStyle
 import com.example.kotlin_openmission_8.model.ComponentType // 사용할 Enum 임포트
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
@@ -123,7 +124,12 @@ fun SideBarButton(
                 TextButton(
                     onClick = {
                         val newComponent = if (componentType == ComponentType.Button) {
-                            // Button 타입: EventAction 객체 생성 후 포함
+                            val buttonStyle = ComponentStyle(
+                                backgroundColor = "#FF6DB7B1", // 연한 청록색 배경
+                                fontColor = "#FFFFFFFF", // 흰색 글씨
+                                borderRadius = 12.0f, // 12px 둥근 모서리
+                            )
+
                             val action = EventAction(
                                 type = "SHOW_TOAST", // (현재는 토스트로 고정)
                                 message = eventMessage
@@ -132,7 +138,8 @@ fun SideBarButton(
                                 action = ComponentAction.Create,
                                 type = componentType,
                                 text = writeText,
-                                onClickAction = action // ✅ EventAction 전달
+                                onClickAction = action,
+                                style = buttonStyle
                             )
                         } else {
                             // Text 타입/기타: 기본 텍스트만 전달

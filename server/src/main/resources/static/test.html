@@ -177,6 +177,11 @@
                 // 4. 컴포넌트 요소에 이미지 태그를 삽입
                 el.appendChild(img);
 
+            } else if (command.type === "Button" && command.onClickAction) {
+                el.addEventListener('click', () => {
+                    // 이전에 정의한 이벤트 해석 함수 호출 (토스트 띄우기)
+                    executeComponentAction(command.onClickAction);
+                });
             } else if (command.text) {
                 // Image 타입이 아닐 때만 텍스트를 넣습니다.
                 el.innerHTML = command.text; // innerText 대신 innerHTML을 사용하여 이전 콘텐츠 제거 (선택 사항)

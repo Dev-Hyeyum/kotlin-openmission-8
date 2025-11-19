@@ -232,7 +232,7 @@ fun ComponentBox(
         } else {
             // Image 타입이 아니거나 URL이 없으면 텍스트를 그림
             Text(
-                text = "${component.type} ${text ?: ""}",
+                text = text ?: "",
                 color = composeFontColor,
                 fontSize = composeFontSize,
                 fontWeight = composeFontWeight,
