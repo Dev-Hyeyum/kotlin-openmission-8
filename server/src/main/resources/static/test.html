@@ -12,11 +12,26 @@
             padding: 0;
             position: relative; /* 자식 요소(absolute)의 기준점 */
         }
-        h1 {
-            position: absolute;
+
+        .ui-control {
+            position: fixed; // 스크롤에 영향을 받지 않음
+            z-index: 9999;
+        }
+
+        // 다운로드 버튼 스타일
+        #downloadBtn {
             top: 10px;
-            left: 10px;
-            z-index: 1000;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #3DDC84;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #downloadBtn:hover {
+            background-color: #32b36b;
         }
 
         p, button {
@@ -25,8 +40,38 @@
     </style>
 </head>
 <body>
+
+<button id="downloadBtn" class="ui-control">📥 HTML 다운로드</button>
+
 <script>
-    // URL에서 'room' 파라미터(방 ID)를 읽어오는 코드
+    // 버튼 클릭 이벤트를 처리하는 함수
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        // 1) 현재 문서의 전체 구조(html 태그 포함)를 복제(Clone)합니다.
+        const clone = document.documentElement.cloneNode(true);
+
+        // 2) 복제된 문서에서 불필요한 UI 요소(버튼, 타이틀)를 제거합니다.
+        const uiControls = clone.querySelectorAll('.ui-control');
+        uiControls.forEach(el => el.remove());
+
+        // 3) 복제된 문서에서 스크립트(WebSocket 연결 로직)를
+        const scripts = clone.querySelectorAll('script');
+        scripts.forEach(el => el.remove());
+
+        // 4) HTML 문자열로 변환
+        const htmlContent = `<!DOCTYPE html>\n` + clone.outerHTML;
+
+        // 5) 가상의 링크를 만들어 다운로드 트리거
+        const blob = new Blob([htmlContent], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'my_website_result.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
 
@@ -77,8 +122,6 @@
 
             if (command.style) {
                 const style = command.style;
-
-                //'AARRGGBB'를 'rgba()'로 변환
                 if (style.backgroundColor) el.style.backgroundColor = aarrggbbToRgba(style.backgroundColor);
                 if (style.fontColor) el.style.color = aarrggbbToRgba(style.fontColor);
                 if (style.fontSize) el.style.fontSize = style.fontSize + 'px';
