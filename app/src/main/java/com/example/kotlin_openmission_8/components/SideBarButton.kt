@@ -1,7 +1,12 @@
 package com.example.kotlin_openmission_8.components
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,7 +33,6 @@ import com.example.kotlin_openmission_8.model.ComponentAction
 import com.example.kotlin_openmission_8.model.ComponentType // 사용할 Enum 임포트
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -41,17 +46,37 @@ fun SideBarButton(
     var showDialog by remember { mutableStateOf(false) }
     var writeText by remember { mutableStateOf("") }
     var eventMessage by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope() // ✨ CoroutineScope 가져오기
+
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                val bitmap = uriToBitmap(context, it) // URI -> Bitmap 변환 (아래 유틸리티 함수 사용)
+                bitmap?.let { btm ->
+                    // 2. ViewModel의 업로드 함수 호출
+                    viewModel.uploadImageAndCreateComponent(btm)
+                }
+            }
+        }
+    }
 
     Button(
         onClick = {
-            if (componentType == ComponentType.Text || componentType == ComponentType.Button) {
-                showDialog = true
-            } else {
-                val newComponent = Component(
-                    action = ComponentAction.Create,
-                    type = componentType
-                )
-                viewModel.postComponent(newComponent)
+            when (componentType) {
+                ComponentType.Image -> {
+                    imageLauncher.launch("image/*") // 갤러리 열기
+                    Toast.makeText(context, "$label 컴포넌트 생성 요청 (파일 선택)", Toast.LENGTH_SHORT).show()
+                }
+                ComponentType.Text, ComponentType.Button -> {
+                    showDialog = true
+                }
+                else -> {
+                    val newComponent = Component(
+                        action = ComponentAction.Create,
+                        type = componentType
+                    )
+                    viewModel.postComponent(newComponent)
+                }
             }
             Toast.makeText(context, "$label 컴포넌트 생성 요청", Toast.LENGTH_SHORT).show()
         },
@@ -72,7 +97,6 @@ fun SideBarButton(
             title = { Text("컴포넌트 설정") }, // 타이틀을 더 포괄적으로 변경
             text = {
                 Column {
-                    // 2. 기본 텍스트 필드 (Text/Button 모두 사용)
                     TextField(
                         value = writeText,
                         onValueChange = { newText -> writeText = newText },
@@ -80,7 +104,6 @@ fun SideBarButton(
                         singleLine = true
                     )
 
-                    // ✨ 3. [조건부] Button 타입일 때만 이벤트 입력 필드를 보여줌
                     if (componentType == ComponentType.Button) {
                         Divider(Modifier.padding(vertical = 12.dp))
                         Text("클릭 이벤트 설정", fontWeight = FontWeight.Bold)
@@ -99,7 +122,6 @@ fun SideBarButton(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // ✨ 4. [핵심] 컴포넌트 생성 로직 통합
                         val newComponent = if (componentType == ComponentType.Button) {
                             // Button 타입: EventAction 객체 생성 후 포함
                             val action = EventAction(
@@ -136,5 +158,17 @@ fun SideBarButton(
                 }
             }
         )
+    }
+}
+
+fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+    return try {
+        // ContentResolver를 사용하여 URI의 스트림을 열고 Bitmap으로 디코딩
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
