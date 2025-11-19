@@ -1,9 +1,5 @@
 package com.example.kotlin_openmission_8.model
 
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -44,5 +40,6 @@ data class Component(
         borderColor = "#FF000000",
         borderRadius = 0.0f
     ),
-    val onClickAction: EventAction? = null
+    val onClickAction: EventAction? = null,
+    val imageUrl: String? = null
 )
