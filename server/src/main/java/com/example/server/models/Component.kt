@@ -43,5 +43,6 @@ data class Component(
         borderColor = "#FF000000",
         borderRadius = 0.0f,
     ),
-    val onClickAction: EventAction? = null
+    val onClickAction: EventAction? = null,
+    val imageUrl: String? = null
 )

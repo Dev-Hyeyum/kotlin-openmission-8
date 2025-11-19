@@ -13,19 +13,20 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.io.File
+import java.util.UUID
 
 fun Application.configureRouting() {
 
-    val thumbnailDir = File("uploads/thumbnails")
-    if (!thumbnailDir.exists()) {
-        thumbnailDir.mkdirs()
+    val uploadRoot = File("uploads")
+    if (!uploadRoot.exists()) {
+        uploadRoot.mkdirs()
     }
 
     routing {
         // resources/static 폴더를 호스팅하는 설정 추가
         // http://localhost:8080/test.html 로 접속
         staticResources("/", "static")
-        staticFiles("/thumbnails", thumbnailDir)
+        staticFiles("/uploads", uploadRoot)
 
         get("/test.html") {
             // 1. URL 파라미터에서 'room' ID를 가져옵니다.
@@ -122,11 +123,17 @@ fun Application.configureRouting() {
 
             val multipart = call.receiveMultipart()
 
+            // 1. ✨ [추가/수정] 룸 ID에 해당하는 서브 폴더 경로 생성
+            val roomSubDir = File(uploadRoot, roomId)
+            if (!roomSubDir.exists()) {
+                roomSubDir.mkdirs() // 폴더가 없으면 생성
+            }
+
             multipart.forEachPart { part ->
                 if (part is PartData.FileItem) {
-                    // ✨ 3. [수정] 파일을 위에서 만든 thumbnailDir 폴더에 저장합니다.
-                    val fileName = "$roomId.png"
-                    val file = File(thumbnailDir, fileName)
+                    // 2. ✨ [수정] 파일명을 'thumbnail.png'로 고정하여 룸 폴더 안에 저장
+                    val fileName = "thumbnail.png"
+                    val file = File(roomSubDir, fileName)
 
                     part.streamProvider().use { input ->
                         file.outputStream().use { output ->
@@ -137,6 +144,48 @@ fun Application.configureRouting() {
                 part.dispose()
             }
             call.respond(HttpStatusCode.OK)
+        }
+
+        post("/upload-image/{roomId}") {
+            val roomId = call.parameters["roomId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+
+            // TODO: 반드시 실제 서버 IP로 변경해야 합니다!
+            val serverBaseUrl = "http://localhost:8080"
+
+            val multipart = call.receiveMultipart()
+            var uploadedFileName: String? = null // uploads/{roomId}/uuid.jpg 형태
+
+            // 1. ✨ [추가/수정] 룸 ID에 해당하는 서브 폴더 경로 생성
+            val roomSubDir = File(uploadRoot, roomId)
+            if (!roomSubDir.exists()) {
+                roomSubDir.mkdirs() // 폴더가 없으면 생성
+            }
+
+            multipart.forEachPart { part ->
+                if (part is PartData.FileItem) {
+                    val fileName = UUID.randomUUID().toString() + ".jpg"
+                    // 2. ✨ [수정] 이미지를 룸 ID 서브 폴더 안에 저장
+                    val file = File(roomSubDir, fileName)
+
+                    // 3. ✨ [핵심] URL에 포함될 파일명(폴더 포함)
+                    uploadedFileName = "$roomId/$fileName"
+
+                    part.streamProvider().use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+                part.dispose()
+            }
+
+            if (uploadedFileName != null) {
+                // 4. ✨ [수정] 응답 URL에 'uploads' 경로를 포함
+                val imageUrl = "$serverBaseUrl/uploads/$uploadedFileName"
+                call.respond(mapOf("imageUrl" to imageUrl))
+            } else {
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Image file not found in request."))
+            }
         }
     }
 }

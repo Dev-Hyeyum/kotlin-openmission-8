@@ -37,6 +37,25 @@
         p, button {
             margin: 0;
         }
+
+        .toast-message {
+            position: fixed; /* 뷰포트 내 고정 */
+            bottom: 30px; /* 화면 아래에서 30px 위로 */
+            left: 50%; /* 수평 중앙 */
+            transform: translateX(-50%); /* 정확히 중앙 정렬 */
+            padding: 12px 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            z-index: 10000; /* 다른 요소 위에 표시 */
+            font-size: 14px;
+            opacity: 0; /* 초기에는 투명하게 설정 */
+            transition: opacity 0.3s ease-in-out; /* 부드러운 효과 */
+        }
+
+        .toast-message.show {
+            opacity: 0.95; /* 나타날 때 불투명하게 */
+        }
     </style>
 </head>
 <body>
@@ -133,9 +152,34 @@
                     el.style.borderWidth = '1px';
                     el.style.borderStyle = 'solid';
                 }
-                if (style.borderRadius) {
+
+                if (command.type !== "Image" && style.borderRadius) {
                     el.style.borderRadius = style.borderRadius + 'px';
                 }
+            }
+
+            if (command.type === "Image" && command.imageUrl) {
+                const imageUrl = getCorrectedWebImageUrl(command.imageUrl);
+
+                // 1. 기존 요소의 내용을 모두 지웁니다.
+                el.innerHTML = '';
+
+                // 2. 이미지를 담을 HTML 요소 생성
+                const img = document.createElement('img');
+                img.src = imageUrl; // 보정된 URL 적용
+
+                // 3. 이미지가 부모 div를 꽉 채우도록 스타일 설정
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover'; // 이미지 비율 유지하며 꽉 채우기
+                img.style.borderRadius = (command.style?.borderRadius || 0) + 'px'; // Border Radius 적용
+
+                // 4. 컴포넌트 요소에 이미지 태그를 삽입
+                el.appendChild(img);
+
+            } else if (command.text) {
+                // Image 타입이 아닐 때만 텍스트를 넣습니다.
+                el.innerHTML = command.text; // innerText 대신 innerHTML을 사용하여 이전 콘텐츠 제거 (선택 사항)
             }
         }
 
@@ -184,6 +228,64 @@
                 }
             }
         };
+    }
+
+    function executeComponentAction(action) {
+        if (!action || !action.type) return;
+
+        switch (action.type) {
+            case "SHOW_TOAST":
+                // 캔버스의 고정된 위치에 웹 토스트/알림 창을 띄웁니다.
+                // alert(action.message || "버튼이 클릭되었습니다!"); ⬅️ 이 부분을 제거하고 아래 함수 호출로 변경
+                displayToast(action.message || "버튼이 클릭되었습니다!", 3000);
+                break;
+            case "REDIRECT_URL":
+                if (action.targetUrl) {
+                    window.location.href = action.targetUrl;
+                }
+                break;
+            default:
+                console.error(`알 수 없는 이벤트 타입: ${action.type}`);
+            }
+        }
+
+    // ✨ [새 함수] 커스텀 토스트 메시지 함수
+    function displayToast(message, durationInMs = 3000) {
+        // 1. 토스트 메시지를 담을 요소 생성
+        const toastEl = document.createElement('div');
+        toastEl.className = 'toast-message';
+        toastEl.textContent = message;
+
+        // 2. 화면 (body)에 추가
+        document.body.appendChild(toastEl);
+
+        // 3. ✨ 나타나는 애니메이션을 위해 잠시 후 'show' 클래스 추가
+        // 이를 통해 CSS의 transition 효과가 적용됩니다.
+        setTimeout(() => {
+            toastEl.classList.add('show');
+        }, 10); // 아주 짧은 딜레이
+
+
+        // 4. ✨ [핵심 해결] 일정 시간이 지난 후 요소를 제거하는 타이머 설정
+        setTimeout(() => {
+            // 사라지는 애니메이션을 위해 'show' 클래스 제거
+            toastEl.classList.remove('show');
+
+            // 애니메이션이 끝난 후 요소를 DOM에서 완전히 제거합니다.
+            setTimeout(() => {
+                 toastEl.remove();
+            }, 300); // CSS transition 시간(0.3s)만큼 기다립니다.
+
+        }, durationInMs);
+    }
+
+    function getCorrectedWebImageUrl(originalUrl) {
+        // 현재 웹 페이지가 접속한 주소의 프로토콜과 호스트(IP:Port)를 가져옴
+        const currentHost = window.location.protocol + "//" + window.location.host;
+
+        // 서버가 보내준 URL의 http://localhost:8080 부분을 실제 접속 주소로 대체
+        // 이는 안드로이드의 BuildConfig.BASE_URL 역할을 합니다.
+        return originalUrl.replace("http://localhost:8080", currentHost);
     }
 </script>
 </body>
