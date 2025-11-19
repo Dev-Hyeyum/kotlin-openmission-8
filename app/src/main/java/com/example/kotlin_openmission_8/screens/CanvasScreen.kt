@@ -17,10 +17,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -37,8 +35,8 @@ import kotlinx.coroutines.launch
 fun CanvasScreen(
     context: Context,
     viewModel: Components,
-    boardId: String, // ✨ 2. NavHost로부터 boardId를 받도록 수정
-    navController: NavHostController // ✨ 2. onNavigateBack 대신 NavController를 받음
+    boardId: String,
+    navController: NavHostController
 ) {
     // 디바이스의 회전 감지
     val configuration = LocalConfiguration.current
@@ -118,7 +116,7 @@ fun CanvasScreen(
                         Modifier.weight(0.05f)
                     },
                     isShowSideBar = isShowSideBar,
-                    isLandscape = isLandscape,
+                    isLandscape = true,
                     onNavigateBack = {
                         captureAndExit()
                     }
@@ -157,7 +155,7 @@ fun CanvasScreen(
                         Modifier.weight(0.1f)
                     },
                     isShowSideBar = isShowSideBar,
-                    isLandscape = isLandscape,
+                    isLandscape = false,
                     onNavigateBack = {
                         captureAndExit()
                     }

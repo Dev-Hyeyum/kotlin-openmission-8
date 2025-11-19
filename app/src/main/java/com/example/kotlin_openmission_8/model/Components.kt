@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlin_openmission_8.BuildConfig
-import com.example.kotlin_openmission_8.BuildConfig.BASE_URL
+import com.example.kotlin_openmission_8.controller.createDefaultCanvasBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -31,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 @Serializable
 private data class CreateCanvasResponse(
@@ -43,10 +43,6 @@ class Components(private val client: HttpClient): ViewModel() {
     private val _components = MutableStateFlow<List<Component>>(emptyList())
     val components: StateFlow<List<Component>> = _components.asStateFlow()
 
-    // MainContentArea 의 상태
-    private val _canvasScrollState = MutableStateFlow(Pair(0f, 0f))
-    val canvasScrollState: StateFlow<Pair<Float, Float>> = _canvasScrollState.asStateFlow()
-
     // 선택한 컴포넌트
     private val _component = MutableStateFlow(Component(action = ComponentAction.Create, type = ComponentType.Dummy))
     val component: StateFlow<Component> = _component.asStateFlow()
@@ -54,6 +50,7 @@ class Components(private val client: HttpClient): ViewModel() {
     // 현재 입장한 캔버스의 ID
     private val _currentRoomId = MutableStateFlow<String?>(null)
     val currentRoomId: StateFlow<String?> = _currentRoomId.asStateFlow()
+
     // 사용자에게 제공된 웹 URL
     private val _currentWebUrl = MutableStateFlow<String?>(null)
     val currentWebUrl: StateFlow<String?> = _currentWebUrl.asStateFlow()
@@ -61,64 +58,12 @@ class Components(private val client: HttpClient): ViewModel() {
     // websocket 접속 상태
     private var isConnected = false
 
-    suspend fun uploadThumbnail(roomId: String, bitmap: Bitmap) {
-        withContext(Dispatchers.IO) { // 백그라운드 스레드에서 실행
-            try {
-                // 1. Bitmap -> ByteArray (PNG) 변환
-                val stream = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream) // 품질 80
-                val byteArray = stream.toByteArray()
+    // WebSocket 작업을 저장할 변수
+    private var webSocketJob: Job? = null
 
-                // 2. 서버로 전송
-                client.post("$BASE_URL/upload-thumbnail/$roomId") {
-                    setBody(
-                        MultiPartFormDataContent(
-                        formData {
-                            append("image", byteArray, Headers.build {
-                                append(HttpHeaders.ContentType, "image/png")
-                                append(
-                                    HttpHeaders.ContentDisposition,
-                                    "filename=\"thumbnail.png\""
-                                )
-                            })
-                        }
-                    ))
-                }
-                println("썸네일 업로드 성공")
-            } catch (e: Exception) {
-                println("썸네일 업로드 실패: ${e.message}")
-            }
-        }
-    }
-
-    // sideBar 상태
-    private val _isSideBarExpanded = MutableStateFlow(true) // 초기값 true
-    val isSideBarExpanded: StateFlow<Boolean> = _isSideBarExpanded.asStateFlow()
-    // 사이드바의 화면 상태
-    private val _isSideBarMenu = MutableStateFlow(true)
-    val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
-
-    private var webSocketJob: Job? = null // ✨ 2. WebSocket 작업을 저장할 변수
-
-    // ✨ 1. [추가] "로비"가 보여줄 캔버스(룸) 목록 상태
+    // 캔버스 목록 상태
     private val _roomList = MutableStateFlow<List<String>>(emptyList())
     val roomList: StateFlow<List<String>> = _roomList.asStateFlow()
-
-
-    fun createCanvas() {
-        viewModelScope.launch {
-            try {
-                // /create-canvas API를 호출
-                val response: CreateCanvasResponse =
-                    client.post("${BASE_URL}/create-canvas").body()
-
-                println("새 캔버스 생성 성공: ${response.roomId}")
-                fetchRoomList()
-            }catch (e: Exception) {
-                println("새 캔버스 생성 실패: ${e.message}")
-            }
-        }
-    }
 
     fun fetchRoomList() {
         viewModelScope.launch {
@@ -129,6 +74,25 @@ class Components(private val client: HttpClient): ViewModel() {
                 println("룸 목록 로드 성공: ${list.size}개")
             } catch (e: Exception) {
                 println("룸 목록 로드 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun createCanvas() {
+        viewModelScope.launch {
+            try {
+                // /create-canvas API를 호출
+                val response: CreateCanvasResponse =
+                    client.post("${BASE_URL}/create-canvas").body()
+
+                println("새 캔버스 생성 성공: ${response.roomId}")
+
+                val defaultBitmap = createDefaultCanvasBitmap(width = 200, height = 150)
+                uploadThumbnail(response.roomId, defaultBitmap)
+
+                fetchRoomList()
+            }catch (e: Exception) {
+                println("새 캔버스 생성 실패: ${e.message}")
             }
         }
     }
@@ -261,7 +225,9 @@ class Components(private val client: HttpClient): ViewModel() {
         width: Float? = null,
         height: Float? = null,
         text: String? = null,
-        style: ComponentStyle? = null
+        style: ComponentStyle? = null,
+        onClickAction: EventAction? = null,
+        imageUrl: String? = null
     ) {
         viewModelScope.launch {
             _components.update { current ->
@@ -273,7 +239,9 @@ class Components(private val client: HttpClient): ViewModel() {
                             height = height ?: component.height,
                             offsetX = (offsetX ?: component.offsetX).coerceAtLeast(0f),
                             offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f),
-                            style = style ?: component.style
+                            style = style ?: component.style,
+                            onClickAction = onClickAction ?: component.onClickAction,
+                            imageUrl = imageUrl ?: component.imageUrl
                         )
                     } else {
                         component
@@ -294,6 +262,94 @@ class Components(private val client: HttpClient): ViewModel() {
             val updateCommand = updatedComponent.copy(action = ComponentAction.Update)
 
             sendCommand(updateCommand, "수정")
+        }
+    }
+
+    suspend fun uploadThumbnail(roomId: String, bitmap: Bitmap) {
+        withContext(Dispatchers.IO) { // 백그라운드 스레드에서 실행
+            try {
+                // 1. Bitmap -> ByteArray (PNG) 변환
+                val stream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream) // 품질 80
+                val byteArray = stream.toByteArray()
+
+                // 2. 서버로 전송
+                client.post("$BASE_URL/upload-thumbnail/$roomId") {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("image", byteArray, Headers.build {
+                                    append(HttpHeaders.ContentType, "image/png")
+                                    append(
+                                        HttpHeaders.ContentDisposition,
+                                        "filename=\"thumbnail.png\""
+                                    )
+                                })
+                            }
+                        ))
+                }
+                println("썸네일 업로드 성공")
+            } catch (e: Exception) {
+                println("썸네일 업로드 실패: ${e.message}")
+            }
+        }
+    }
+
+    fun uploadImageAndCreateComponent(bitmap: Bitmap) {
+        val roomId = _currentRoomId.value ?: run {
+            println("Image 업로드 실패: Room ID가 없습니다.")
+            return
+        }
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    // 1. Bitmap -> ByteArray 변환 (JPEG 압축을 사용하여 용량 최적화)
+                    val stream = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+                    val byteArray = stream.toByteArray()
+
+                    // 2. 서버의 새로운 이미지 업로드 엔드포인트로 전송
+                    val response = client.post("$BASE_URL/upload-image/$roomId") { // 서버 엔드포인트에 맞게 수정
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    append("image", byteArray, Headers.build {
+                                        append(HttpHeaders.ContentType, "image/jpeg")
+                                        append(
+                                            HttpHeaders.ContentDisposition,
+                                            "filename=\"component_image.jpg\""
+                                        )
+                                    })
+                                }
+                            )
+                        )
+                    }
+
+                    // 3. 서버 응답 (업로드된 이미지의 URL) 수신
+                    val imageResponse = response.body<ImageUploadResponse>()
+                    val imageUrl = imageResponse.imageUrl
+
+                    // 4. 이미지 URL을 포함하여 Component.Create 명령 생성
+                    val imageComponent = Component(
+                        action = ComponentAction.Create,
+                        type = ComponentType.Image,     // 타입은 Image
+                        imageUrl = imageUrl,            // URL 정보 포함
+                        id = UUID.randomUUID().toString(), // 새 ID 생성
+                        text = "", // 텍스트 필드는 비워둡니다.
+                        width = bitmap.width.toFloat(), // 원본 사이즈 반영 (선택 사항)
+                        height = bitmap.height.toFloat()
+                    )
+
+                    // 5. 서버에 Component.Create 명령 전송 (WebSocket 브로드캐스트 트리거)
+                    sendCommand(imageComponent, "Image 컴포넌트 생성")
+
+                    println("Image 컴포넌트 생성 성공: URL $imageUrl")
+
+                } catch (e: Exception) {
+                    println("Image 업로드 및 컴포넌트 생성 실패: ${e.message}")
+                }
+            }
         }
     }
 
@@ -327,6 +383,10 @@ class Components(private val client: HttpClient): ViewModel() {
         }
     }
 
+    // MainContentArea 의 상태
+    private val _canvasScrollState = MutableStateFlow(Pair(0f, 0f))
+    val canvasScrollState: StateFlow<Pair<Float, Float>> = _canvasScrollState.asStateFlow()
+
     fun scrollCanvas(dx: Float, dy: Float) {
         _canvasScrollState.update { (currentX, currentY) ->
             val newX = currentX + dx
@@ -340,6 +400,10 @@ class Components(private val client: HttpClient): ViewModel() {
         _canvasScrollState.value = Pair(0f, 0f)
     }
 
+    // sideBar 상태
+    private val _isSideBarExpanded = MutableStateFlow(true) // 초기값 true
+    val isSideBarExpanded: StateFlow<Boolean> = _isSideBarExpanded.asStateFlow()
+
     fun showSideBar() {
         _isSideBarExpanded.value = true
     }
@@ -347,6 +411,10 @@ class Components(private val client: HttpClient): ViewModel() {
     fun notShowSideBar() {
         _isSideBarExpanded.value = false
     }
+
+    // 사이드바의 화면 상태
+    private val _isSideBarMenu = MutableStateFlow(true)
+    val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
 
     fun isCreateMenu() {
         _isSideBarMenu.value = true
