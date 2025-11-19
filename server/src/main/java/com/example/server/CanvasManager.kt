@@ -1,5 +1,6 @@
 package com.example.server
 
+import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -25,17 +26,41 @@ object CanvasManager {
     }
 
     suspend fun deleteCanvas(roomId: String): Room? {
-        // 1. 맵에서 Room을 찾음
-        val room = rooms[roomId] ?: return null // 방이 없으면 null 반환
+        // 1. 방 찾기
+        val room = rooms[roomId] ?: return null
 
-        // 2. Room에 연결된 모든 사용자의 WebSocket 연결을 먼저 닫음
+        val uploadDir = File("uploads/thumbnails")
+
+        // 2. 연결 종료
         room.closeAllConnections()
 
-        // 3. 맵에서 Room을 제거
+        // 3. 맵에서 방 제거
         val removedRoom = rooms.remove(roomId)
+
+        // ✨ 4. [추가] 썸네일 파일 삭제 로직
         if (removedRoom != null) {
+            try {
+                // 파일 객체 생성 (uploads/thumbnails/{roomId}.png)
+                val thumbnailFile = File(uploadDir, "$roomId.png")
+
+                // 파일이 존재하면 삭제
+                if (thumbnailFile.exists()) {
+                    val isDeleted = thumbnailFile.delete()
+                    if (isDeleted) {
+                        println("[$roomId] 썸네일 이미지 삭제 완료")
+                    } else {
+                        println("[$roomId] 썸네일 삭제 실패 (파일은 존재함)")
+                    }
+                } else {
+                    println("[$roomId] 삭제할 썸네일이 없음")
+                }
+            } catch (e: Exception) {
+                println("[$roomId] 파일 삭제 중 오류 발생: ${e.message}")
+            }
+
             println("캔버스 삭제됨 $roomId")
         }
+
         return removedRoom
     }
 }
