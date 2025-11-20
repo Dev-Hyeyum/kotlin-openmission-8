@@ -105,7 +105,7 @@ fun SideBarButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("버튼 이벤트 및 텍스트 설정") },
+            title = { Text(if (componentType == ComponentType.Button) "버튼 설정" else "텍스트 설정") },
             text = {
                 Column {
                     // 1. 컴포넌트 텍스트 필드 (Label)
