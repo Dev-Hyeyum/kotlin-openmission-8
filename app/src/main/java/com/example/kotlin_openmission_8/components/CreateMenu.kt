@@ -23,9 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
+import com.example.kotlin_openmission_8.model.EventAction
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import androidx.core.graphics.toColorInt
 
@@ -53,6 +55,11 @@ fun CreateMenu(
     var borderColor by remember { mutableStateOf(Color(component.style.borderColor.toColorInt())) }
     var borderRadius by remember { mutableFloatStateOf(component.style.borderRadius) }
 
+    // 이벤트(액션) 관련 상태
+    var selectedActionType by remember { mutableStateOf("NONE") }
+    var actionValue by remember { mutableStateOf("") }
+    val actionOptions = listOf("NONE", "SHOW_TOAST", "OPEN_LINK")
+
     // 색 조작하기 위한 컨트롤러
     val fontColorController = rememberColorPickerController()
     val backGroundColorController = rememberColorPickerController()
@@ -72,6 +79,16 @@ fun CreateMenu(
         fontSize = component.style.fontSize
         fontWeight = component.style.fontWeight
         fontFamily = component.style.fontFamily
+
+        // 기존 액션 정보 불러오기
+        val firstAction = component.actions.firstOrNull()
+        if (firstAction != null) {
+            selectedActionType = firstAction.type
+            actionValue = firstAction.value
+        } else {
+            selectedActionType = "NONE"
+            actionValue = ""
+        }
 
         try {
             fontColor = Color(component.style.fontColor.toColorInt())
@@ -146,8 +163,37 @@ fun CreateMenu(
             onColorChange = { borderColor = it }
         )
 
+        if (component.type == ComponentType.Button) {
+            Text(
+                text = "이벤트 설정",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+            )
+
+            // 액션 타입 선택 (DropDownMenu 재사용)
+            DropDownMenu(
+                options = actionOptions,
+                label = "클릭 시 동작",
+                currentSelection = selectedActionType,
+                onSelectionChange = { selectedActionType = it },
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // 액션 값 입력 (NONE이 아닐 때만 표시)
+            if (selectedActionType != "NONE") {
+                val labelText = if (selectedActionType == "SHOW_TOAST") "메시지 내용" else "이동할 URL"
+                OutlinedTextField(
+                    value = actionValue,
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    onValueChange = { actionValue = it },
+                    label = { Text(labelText) },
+                    singleLine = true
+                )
+            }
+        }
+
         Row (
-            modifier = Modifier.padding(start = 30.dp, end = 30.dp, top = 10.dp, bottom = 10.dp).fillMaxWidth(),
+            modifier = Modifier.padding(start = 30.dp, end = 30.dp, top = 20.dp, bottom = 20.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -173,6 +219,21 @@ fun CreateMenu(
                         borderColor = newBorderColorString,
                         borderRadius = borderRadius,
                     )
+
+                    // 선택된 이벤트 정보를 리스트로 구성
+                    val newActions = if (selectedActionType != "NONE") {
+                        listOf(
+                            EventAction(
+                                trigger = "OnClick",
+                                type = selectedActionType,
+                                value = actionValue,
+                                targetId = null
+                            )
+                        )
+                    } else {
+                        emptyList()
+                    }
+
                     viewModel.updateComponent(
                         id = component.id,
                         offsetX = offsetX,
@@ -180,7 +241,8 @@ fun CreateMenu(
                         width = boxWidth,
                         height = boxHeight,
                         text = text,
-                        style = newStyle
+                        style = newStyle,
+                        actions = newActions
                     )
                 }
             ) {

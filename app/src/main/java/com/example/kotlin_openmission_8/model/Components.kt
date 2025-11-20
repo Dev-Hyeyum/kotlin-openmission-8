@@ -116,7 +116,7 @@ class Components(private val client: HttpClient): ViewModel() {
         // 이미 같은 방에 접속해 있다면 중복 실행 방지
         if (isConnected && _currentRoomId.value == roomId) return
 
-        // ✨ 5. [핵심] 기존에 연결된 Job(이전 방)이 있다면 취소!
+        // 기존에 연결된 Job(이전 방)이 있다면 취소
         webSocketJob?.cancel()
 
         // 상태 초기화 (새 방에 들어가기 전)
@@ -124,11 +124,10 @@ class Components(private val client: HttpClient): ViewModel() {
         _component.value = Component(action = ComponentAction.Create, type = ComponentType.Dummy)
 
         isConnected = true
-        _currentRoomId.value = roomId // ⬅️ RoomId를 여기서 설정
+        _currentRoomId.value = roomId // RoomId를 여기서 설정
 
         _currentWebUrl.value = "localhost:8080/test.html?room=$roomId"
 
-        // ✨ 6. 새 Job을 시작하고 변수에 저장
         webSocketJob = viewModelScope.launch {
             try {
                 client.webSocket("$WS_URL/$roomId") {
@@ -167,7 +166,7 @@ class Components(private val client: HttpClient): ViewModel() {
         webSocketJob?.cancel()
         webSocketJob = null
 
-        // ✅ [추가] 뒤로 가기를 누르는 즉시 ID를 null로 만듭니다.
+        // 뒤로 가기를 누르는 즉시 ID를 null로 만듭니다.
         _currentRoomId.value = null
         _currentWebUrl.value = null
 
@@ -226,7 +225,7 @@ class Components(private val client: HttpClient): ViewModel() {
         height: Float? = null,
         text: String? = null,
         style: ComponentStyle? = null,
-        onClickAction: EventAction? = null,
+        actions: List<EventAction>? = null,
         imageUrl: String? = null
     ) {
         viewModelScope.launch {
@@ -240,7 +239,7 @@ class Components(private val client: HttpClient): ViewModel() {
                             offsetX = (offsetX ?: component.offsetX).coerceAtLeast(0f),
                             offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f),
                             style = style ?: component.style,
-                            onClickAction = onClickAction ?: component.onClickAction,
+                            actions = actions ?: component.actions,
                             imageUrl = imageUrl ?: component.imageUrl
                         )
                     } else {
@@ -369,7 +368,7 @@ class Components(private val client: HttpClient): ViewModel() {
 
                     val index = newList.indexOfFirst { it.id == cleanCommand.id }
                     if (index != -1) newList[index] = cleanCommand else newList.add(cleanCommand)
-                    println("➕ 추가/수T-수정됨: ${cleanCommand.id}")
+                    println("➕ 추가/수정됨: ${cleanCommand.id}")
                 }
                 ComponentAction.Delete -> {
                     newList.removeIf { it.id == command.id }

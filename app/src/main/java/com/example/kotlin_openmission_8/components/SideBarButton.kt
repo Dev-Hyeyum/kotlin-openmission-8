@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentAction
 import com.example.kotlin_openmission_8.model.ComponentStyle
-import com.example.kotlin_openmission_8.model.ComponentType // 사용할 Enum 임포트
+import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
 import kotlinx.coroutines.launch
@@ -55,9 +55,10 @@ fun SideBarButton(
     var selectedEventType by remember { mutableStateOf("SHOW_TOAST") }
     var eventMessage by remember { mutableStateOf("") }
     var eventUrl by remember { mutableStateOf("") }
+    var isDropdownExpanded by remember { mutableStateOf(false) } // 드롭다운 상태
 
-    val eventOptions = remember { listOf("SHOW_TOAST", "REDIRECT_URL", "NONE") }
-    val scope = rememberCoroutineScope() // ✨ CoroutineScope 가져오기
+    val eventOptions = remember { listOf("SHOW_TOAST", "OPEN_LINK", "NONE") }
+    val scope = rememberCoroutineScope()
 
     val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -89,7 +90,6 @@ fun SideBarButton(
                     viewModel.postComponent(newComponent)
                 }
             }
-            Toast.makeText(context, "$label 컴포넌트 생성 요청", Toast.LENGTH_SHORT).show()
         },
         modifier = modifier
             .size(60.dp),
@@ -105,10 +105,10 @@ fun SideBarButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("버튼 이벤트 및 텍스트 설정") },
+            title = { Text(if (componentType == ComponentType.Button) "버튼 설정" else "텍스트 설정") },
             text = {
                 Column {
-                    // 1. 컴포넌트 텍스트 필드 (Label)
+                    // 컴포넌트 텍스트 필드 (Label)
                     TextField(
                         value = writeText,
                         onValueChange = { writeText = it },
@@ -120,48 +120,44 @@ fun SideBarButton(
                         Divider(Modifier.padding(vertical = 8.dp))
                         Text("클릭 이벤트 설정", fontWeight = FontWeight.Bold)
 
-                        // 2. ✨ [필수] 이벤트 타입 선택 드롭다운
+                        // 이벤트 타입 선택 드롭다운
                         ExposedDropdownMenuBox(
-                            expanded = selectedEventType.contains("EXPANDED"), // 임시 상태
-                            onExpandedChange = {
-                                // 토글 시 상태에 "EXPANDED"를 임시로 붙여서 확장 상태 제어
-                                selectedEventType = if (it) selectedEventType + "EXPANDED" else selectedEventType.replace("EXPANDED", "")
-                            },
+                            expanded = isDropdownExpanded,
+                            onExpandedChange = { isDropdownExpanded = !isDropdownExpanded },
                             modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
                         ) {
                             TextField(
                                 modifier = Modifier.menuAnchor(),
                                 readOnly = true,
-                                value = selectedEventType.replace("EXPANDED", ""), // EXPANDED 제거 후 표시
+                                value = selectedEventType,
                                 onValueChange = {},
-                                label = { Text("이벤트 종류") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = selectedEventType.contains("EXPANDED")) },
+                                label = { Text("동작 선택") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
                             )
                             ExposedDropdownMenu(
-                                expanded = selectedEventType.contains("EXPANDED"),
-                                onDismissRequest = { selectedEventType = selectedEventType.replace("EXPANDED", "") }
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false }
                             ) {
                                 eventOptions.forEach { option ->
                                     DropdownMenuItem(
                                         text = { Text(option) },
                                         onClick = {
-                                            // 3. ✨ 이벤트 타입을 바꾸면 아래 필드가 바뀝니다.
                                             selectedEventType = option
+                                            isDropdownExpanded = false
                                         }
                                     )
                                 }
                             }
                         }
 
-                        // 4. ✨ [조건부] 선택된 타입에 따라 다른 필드 표시
-                        when (selectedEventType.replace("EXPANDED", "")) {
+                        when (selectedEventType) {
                             "SHOW_TOAST" -> TextField(
                                 value = eventMessage,
                                 onValueChange = { eventMessage = it },
                                 label = { Text("토스트 메시지 내용") },
                                 singleLine = true
                             )
-                            "REDIRECT_URL" -> TextField(
+                            "OPEN_LINK", "REDIRECT_URL" -> TextField(
                                 value = eventUrl,
                                 onValueChange = { eventUrl = it },
                                 label = { Text("이동할 URL") },
@@ -180,22 +176,33 @@ fun SideBarButton(
                             borderRadius = 10.0f,         // 둥근 모서리 고정
                         )
 
-                        val action: EventAction? = when (selectedEventType.replace("EXPANDED", "")) {
-                            "SHOW_TOAST" -> EventAction(type = "SHOW_TOAST", message = eventMessage)
-                            "REDIRECT_URL" -> EventAction(type = "REDIRECT_URL", targetUrl = eventUrl)
-                            else -> null // NONE일 경우 Action 객체를 생성하지 않음
+                        val newActions = if (componentType == ComponentType.Button && selectedEventType != "NONE") {
+                            val actionValue = if (selectedEventType == "SHOW_TOAST") eventMessage else eventUrl
+                            listOf(
+                                EventAction(
+                                    trigger = "OnClick",
+                                    type = selectedEventType,
+                                    value = actionValue,
+                                    targetId = null
+                                )
+                            )
+                        } else {
+                            emptyList()
                         }
 
                         val newComponent = Component(
                             action = ComponentAction.Create,
                             type = componentType,
                             text = writeText,
-                            onClickAction = action,
-                            style = buttonStyle
+                            style = buttonStyle,
+                            actions = newActions
                         )
 
                         viewModel.postComponent(newComponent)
                         showDialog = false
+                        writeText = ""
+                        eventMessage = ""
+                        eventUrl = ""
                     }
                 ) {
                     Text("확인")
@@ -214,7 +221,6 @@ fun SideBarButton(
 
 fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
     return try {
-        // ContentResolver를 사용하여 URI의 스트림을 열고 Bitmap으로 디코딩
         context.contentResolver.openInputStream(uri)?.use { inputStream ->
             BitmapFactory.decodeStream(inputStream)
         }
