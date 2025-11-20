@@ -39,6 +39,7 @@ fun CreateMenu(
     // 컴포넌트
     val component by viewModel.component.collectAsState()
 
+    val allComponents by viewModel.components.collectAsState()
     // component의 데이터
     var offsetX by remember { mutableFloatStateOf(component.offsetX) }
     var offsetY by remember { mutableFloatStateOf(component.offsetY) }
@@ -58,7 +59,8 @@ fun CreateMenu(
     // 이벤트(액션) 관련 상태
     var selectedActionType by remember { mutableStateOf("NONE") }
     var actionValue by remember { mutableStateOf("") }
-    val actionOptions = listOf("NONE", "SHOW_TOAST", "OPEN_LINK")
+    val actionOptions = listOf("NONE", "SHOW_TOAST", "OPEN_LINK", "SET_TEXT")
+    var selectedTargetId by remember { mutableStateOf<String?>(null) } // 타겟 ID 저장
 
     // 색 조작하기 위한 컨트롤러
     val fontColorController = rememberColorPickerController()
@@ -85,6 +87,7 @@ fun CreateMenu(
         if (firstAction != null) {
             selectedActionType = firstAction.type
             actionValue = firstAction.value
+            selectedTargetId = firstAction.targetId
         } else {
             selectedActionType = "NONE"
             actionValue = ""
@@ -180,8 +183,58 @@ fun CreateMenu(
             )
 
             // 액션 값 입력 (NONE이 아닐 때만 표시)
+            if (selectedActionType == "SET_TEXT") {
+                val otherComponents = allComponents.filter { it.id != component.id }
+                val targetList = listOf(component) + otherComponents
+
+                // 드롭다운에 표시할 이름
+                val targetNames = targetList.map { item ->
+                    if (item.id == component.id) {
+                        "자신 (현재 선택된 컴포넌트)"
+                    } else {
+                        val content = item.text?.take(8) ?: "내용없음" // 텍스트 앞 8글자
+                        val shortId = item.id.takeLast(4) // ID 뒤 4글자 (구분용)
+                        "${item.type} : $content (#$shortId)"
+                    }
+                }
+
+                // 3. 현재 선택된 타겟의 이름 찾기 (초기값 표시용)
+                val currentTargetName = if (selectedTargetId == component.id) {
+                    "자신 (현재 선택된 컴포넌트)"
+                } else {
+                    val found = targetList.find { it.id == selectedTargetId }
+                    if (found != null) {
+                        val content = found.text?.take(8) ?: "내용없음"
+                        val shortId = found.id.takeLast(4)
+                        "${found.type} : $content (#$shortId)"
+                    } else {
+                        "선택하세요"
+                    }
+                }
+
+                DropDownMenu(
+                    options = targetNames,
+                    label = "대상 컴포넌트 (Target)",
+                    currentSelection = currentTargetName,
+                    onSelectionChange = { selectedName ->
+                        // 선택된 이름(String)을 기반으로 실제 객체(Component)의 ID를 찾음
+                        val index = targetNames.indexOf(selectedName)
+                        if (index != -1) {
+                            selectedTargetId = targetList[index].id
+                        }
+                    },
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            // 값 입력
             if (selectedActionType != "NONE") {
-                val labelText = if (selectedActionType == "SHOW_TOAST") "메시지 내용" else "이동할 URL"
+                val labelText = when (selectedActionType) {
+                    "SHOW_TOAST" -> "메시지 내용"
+                    "OPEN_LINK" -> "이동할 URL"
+                    "SET_TEXT" -> "변경할 텍스트 값"
+                    else -> "값 입력"
+                }
                 OutlinedTextField(
                     value = actionValue,
                     modifier = Modifier.fillMaxWidth(0.9f),
@@ -227,8 +280,7 @@ fun CreateMenu(
                                 trigger = "OnClick",
                                 type = selectedActionType,
                                 value = actionValue,
-                                targetId = null
-                            )
+                                targetId = if (selectedActionType == "SET_TEXT") selectedTargetId else null                            )
                         )
                     } else {
                         emptyList()
