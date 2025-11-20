@@ -11,31 +11,42 @@
             margin: 0;
             padding: 0;
             position: relative; /* 자식 요소(absolute)의 기준점 */
-        }
-
-        .ui-control {
-            position: fixed; // 스크롤에 영향을 받지 않음
-            z-index: 9999;
-        }
-
-        // 다운로드 버튼 스타일
-        #downloadBtn {
-            top: 10px;
-            right: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #3DDC84;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        #downloadBtn:hover {
-            background-color: #32b36b;
+            overflow: hidden;
         }
 
         p, button {
             margin: 0;
+        }
+
+        .download-wrapper {
+            position: fixed;
+            top: 20px;
+            right: -190px;
+            z-index: 9999;
+            padding-right: 20px;
+            transition: right 0.3s ease-in-out;
+        }
+        .download-wrapper:hover {
+            right: 0; /* 화면 오른쪽 끝까지 붙음 */
+        }
+
+        #downloadBtn {
+            display: block;
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            transition: background-color 0.2s ease-in-out;
+        }
+        #downloadBtn:hover {
+            background-color: #0056b3;
         }
 
         .toast-message {
@@ -54,13 +65,15 @@
         }
 
         .toast-message.show {
-            opacity: 0.95; /* 나타날 때 불투명하게 */
+            opacity: 0.95;
         }
     </style>
 </head>
 <body>
 
-<button id="downloadBtn" class="ui-control">📥 HTML 다운로드</button>
+<div class="download-wrapper ui-control">
+    <button id="downloadBtn">📥 HTML 다운로드</button>
+</div>
 
 <script>
     // 버튼 클릭 이벤트를 처리하는 함수
@@ -72,7 +85,7 @@
         const uiControls = clone.querySelectorAll('.ui-control');
         uiControls.forEach(el => el.remove());
 
-        // 3) 복제된 문서에서 스크립트(WebSocket 연결 로직)를
+        // 3) 복제된 문서에서 스크립트(WebSocket 연결 로직)를 제거합니다.
         const scripts = clone.querySelectorAll('script');
         scripts.forEach(el => el.remove());
 
@@ -95,34 +108,38 @@
     const roomId = urlParams.get('room');
 
     if (!roomId) {
-        document.body.innerHTML = "<h1>Error: 캔버스 ID(Room ID)가 URL에 없습니다.</h1>";
+        // 에러 메시지를 화면에 작게 표시 (헤딩 스타일 제외)
+        const errorMsg = document.createElement('div');
+        errorMsg.innerText = "Error: 캔버스 ID(Room ID)가 URL에 없습니다.";
+        errorMsg.style.color = "red";
+        errorMsg.style.padding = "20px";
+        document.body.appendChild(errorMsg);
 
     } else {
         // room ID가 포함된 주소로 웹소켓 연결을 수행
-        const ws = new WebSocket(`ws://localhost:8080/ws/${roomId}`);
+        // (터널링 환경 고려하여 프로토콜/호스트 동적 감지)
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        const ws = new WebSocket(`${protocol}//${host}/ws/${roomId}`);
 
         function aarrggbbToRgba(hex) {
-            hex = hex.replace('#', ''); // '#' 제거
-
-            // 6자리 (RRGGBB)가 오면, 투명도 100% (FF)를 맨 앞에 추가
-            if (hex.length === 6) {
-                hex = 'FF' + hex;
-            }
-
-            // 8자리 (AARRGGBB)가 아니면 오류
+            hex = hex.replace('#', '');
+            if (hex.length === 6) hex = 'FF' + hex;
             if (hex.length !== 8) {
                 console.warn("잘못된 AARRGGBB 형식:", hex);
-                return null; // (기본값)
+                return null;
             }
-
-            const a = parseInt(hex.substring(0, 2), 16) / 255.0; // Alpha (투명도)
-            const r = parseInt(hex.substring(2, 4), 16); // Red
-            const g = parseInt(hex.substring(4, 6), 16); // Green
-            const b = parseInt(hex.substring(6, 8), 16); // Blue
-
+            const a = parseInt(hex.substring(0, 2), 16) / 255.0;
+            const r = parseInt(hex.substring(2, 4), 16);
+            const g = parseInt(hex.substring(4, 6), 16);
+            const b = parseInt(hex.substring(6, 8), 16);
             return `rgba(${r}, ${g}, ${b}, ${a})`;
         }
 
+        function getCorrectedWebImageUrl(originalUrl) {
+            const currentHost = window.location.protocol + "//" + window.location.host;
+            return originalUrl.replace("http://localhost:8080", currentHost);
+        }
 
         function applyStylesAndText(el, command) {
             el.style.position = 'absolute';
@@ -132,12 +149,8 @@
             el.style.height = (command.height || 150) + 'px';
 
             el.style.display = 'flex';
-            el.style.alignItems = 'center'; // 수직 중앙
-            el.style.justifyContent = 'center'; // 수평 중앙
-
-            if (command.text) {
-                el.innerText = command.text;
-            }
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
 
             if (command.style) {
                 const style = command.style;
@@ -158,33 +171,36 @@
                 }
             }
 
+            // 텍스트 처리
+            if (command.text) {
+                el.innerText = command.text;
+            }
+
+            // 이미지 처리
             if (command.type === "Image" && command.imageUrl) {
                 const imageUrl = getCorrectedWebImageUrl(command.imageUrl);
-
-                // 1. 기존 요소의 내용을 모두 지웁니다.
                 el.innerHTML = '';
-
-                // 2. 이미지를 담을 HTML 요소 생성
                 const img = document.createElement('img');
-                img.src = imageUrl; // 보정된 URL 적용
-
-                // 3. 이미지가 부모 div를 꽉 채우도록 스타일 설정
+                img.src = imageUrl;
                 img.style.width = '100%';
                 img.style.height = '100%';
-                img.style.objectFit = 'cover'; // 이미지 비율 유지하며 꽉 채우기
-                img.style.borderRadius = (command.style?.borderRadius || 0) + 'px'; // Border Radius 적용
-
-                // 4. 컴포넌트 요소에 이미지 태그를 삽입
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = (command.style?.borderRadius || 0) + 'px';
                 el.appendChild(img);
+            }
 
-            } else if (command.type === "Button" && command.onClickAction) {
-                el.addEventListener('click', () => {
-                    // 이전에 정의한 이벤트 해석 함수 호출 (토스트 띄우기)
-                    executeComponentAction(command.onClickAction);
-                });
-            } else if (command.text) {
-                // Image 타입이 아닐 때만 텍스트를 넣습니다.
-                el.innerHTML = command.text; // innerText 대신 innerHTML을 사용하여 이전 콘텐츠 제거 (선택 사항)
+            // 이벤트 처리 (actions 리스트 반복)
+            // 기존의 command.onClickAction 대신 command.actions를 확인합니다.
+            if (command.actions && command.actions.length > 0) {
+                el.style.cursor = "pointer"; // 클릭 가능 표시
+                el.onclick = function() {
+                    command.actions.forEach(action => {
+                        executeComponentAction(action);
+                    });
+                };
+            } else {
+                el.onclick = null;
+                el.style.cursor = "default";
             }
         }
 
@@ -206,7 +222,6 @@
             let commands = JSON.parse(event.data);
 
             if (Array.isArray(commands)) {
-                // (초기 데이터 로드)
                 commands.forEach(command => {
                     const existingEl = document.getElementById(command.id);
                     if (existingEl) existingEl.remove();
@@ -216,7 +231,6 @@
                     document.body.appendChild(el);
                 });
             } else {
-                // 실시간 명령 수신
                 const command = commands;
                 if (command.action === "Create" || command.action === "Update") {
                     let elToUpdate = document.getElementById(command.id);
@@ -240,57 +254,31 @@
 
         switch (action.type) {
             case "SHOW_TOAST":
-                // 캔버스의 고정된 위치에 웹 토스트/알림 창을 띄웁니다.
-                // alert(action.message || "버튼이 클릭되었습니다!"); ⬅️ 이 부분을 제거하고 아래 함수 호출로 변경
-                displayToast(action.message || "버튼이 클릭되었습니다!", 3000);
+                // action.message 대신 action.value 사용
+                displayToast(action.value || "알림", 3000);
                 break;
+            case "OPEN_LINK": // 앱에서 설정한 이름
             case "REDIRECT_URL":
-                if (action.targetUrl) {
-                    window.location.href = action.targetUrl;
+                // action.targetUrl 대신 action.value 사용
+                if (action.value) {
+                    window.location.href = action.value;
                 }
                 break;
             default:
                 console.error(`알 수 없는 이벤트 타입: ${action.type}`);
-            }
         }
+    }
 
-    // ✨ [새 함수] 커스텀 토스트 메시지 함수
     function displayToast(message, durationInMs = 3000) {
-        // 1. 토스트 메시지를 담을 요소 생성
         const toastEl = document.createElement('div');
         toastEl.className = 'toast-message';
         toastEl.textContent = message;
-
-        // 2. 화면 (body)에 추가
         document.body.appendChild(toastEl);
-
-        // 3. ✨ 나타나는 애니메이션을 위해 잠시 후 'show' 클래스 추가
-        // 이를 통해 CSS의 transition 효과가 적용됩니다.
+        setTimeout(() => { toastEl.classList.add('show'); }, 10);
         setTimeout(() => {
-            toastEl.classList.add('show');
-        }, 10); // 아주 짧은 딜레이
-
-
-        // 4. ✨ [핵심 해결] 일정 시간이 지난 후 요소를 제거하는 타이머 설정
-        setTimeout(() => {
-            // 사라지는 애니메이션을 위해 'show' 클래스 제거
             toastEl.classList.remove('show');
-
-            // 애니메이션이 끝난 후 요소를 DOM에서 완전히 제거합니다.
-            setTimeout(() => {
-                 toastEl.remove();
-            }, 300); // CSS transition 시간(0.3s)만큼 기다립니다.
-
+            setTimeout(() => { toastEl.remove(); }, 300);
         }, durationInMs);
-    }
-
-    function getCorrectedWebImageUrl(originalUrl) {
-        // 현재 웹 페이지가 접속한 주소의 프로토콜과 호스트(IP:Port)를 가져옴
-        const currentHost = window.location.protocol + "//" + window.location.host;
-
-        // 서버가 보내준 URL의 http://localhost:8080 부분을 실제 접속 주소로 대체
-        // 이는 안드로이드의 BuildConfig.BASE_URL 역할을 합니다.
-        return originalUrl.replace("http://localhost:8080", currentHost);
     }
 </script>
 </body>
