@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EventAction(
-    val type: String,           // ✨ 실행할 기능의 이름 (예: "SHOW_TOAST", "REDIRECT")
-    val message: String? = null, // 기능의 매개변수 1 (예: 토스트에 띄울 텍스트)
-    val targetUrl: String? = null // 기능의 매개변수 2 (예: 이동할 URL)
+    val trigger: String = "OnClick", // 이벤트 발생 조건
+    val targetId: String? = null,    // 이벤트의 대상(타겟)
+    val type: String,                // 어떤 이벤트인지
+    val value: String                // 이벤트에 사용될 value
 )
