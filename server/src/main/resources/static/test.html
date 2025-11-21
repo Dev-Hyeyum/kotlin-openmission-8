@@ -148,6 +148,10 @@
             el.style.width = (command.width || 200) + 'px';
             el.style.height = (command.height || 150) + 'px';
 
+            if (command.layer !== undefined && command.layer !== null) {
+                el.style.zIndex = Math.round(command.layer);
+            }
+
             el.style.display = 'flex';
             el.style.alignItems = 'center';
             el.style.justifyContent = 'center';

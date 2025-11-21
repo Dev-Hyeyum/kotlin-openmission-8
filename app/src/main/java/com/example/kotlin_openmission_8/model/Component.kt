@@ -41,5 +41,6 @@ data class Component(
         borderRadius = 0.0f
     ),
     val actions: List<EventAction> = emptyList(),
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    var layer: Float = 0f
 )

@@ -226,7 +226,8 @@ class Components(private val client: HttpClient): ViewModel() {
         text: String? = null,
         style: ComponentStyle? = null,
         actions: List<EventAction>? = null,
-        imageUrl: String? = null
+        imageUrl: String? = null,
+        layer: Float? = null
     ) {
         viewModelScope.launch {
             _components.update { current ->
@@ -240,7 +241,8 @@ class Components(private val client: HttpClient): ViewModel() {
                             offsetY = (offsetY ?: component.offsetY).coerceAtLeast(0f),
                             style = style ?: component.style,
                             actions = actions ?: component.actions,
-                            imageUrl = imageUrl ?: component.imageUrl
+                            imageUrl = imageUrl ?: component.imageUrl,
+                            layer = layer ?: component.layer
                         )
                     } else {
                         component
@@ -364,8 +366,6 @@ class Components(private val client: HttpClient): ViewModel() {
 
             when (command.action) {
                 ComponentAction.Create, ComponentAction.Update -> {
-
-
                     val index = newList.indexOfFirst { it.id == cleanCommand.id }
                     if (index != -1) newList[index] = cleanCommand else newList.add(cleanCommand)
                     println("➕ 추가/수정됨: ${cleanCommand.id}")
@@ -412,15 +412,19 @@ class Components(private val client: HttpClient): ViewModel() {
     }
 
     // 사이드바의 화면 상태
-    private val _isSideBarMenu = MutableStateFlow(true)
-    val isSideBarMenu: StateFlow<Boolean> = _isSideBarMenu.asStateFlow()
+    private val _isSideBarMenu = MutableStateFlow(Menu.CREATE)
+    val isSideBarMenu: StateFlow<Menu> = _isSideBarMenu.asStateFlow()
 
     fun isCreateMenu() {
-        _isSideBarMenu.value = true
+        _isSideBarMenu.value = Menu.CREATE
     }
 
     fun isEditMenu() {
-        _isSideBarMenu.value = false
+        _isSideBarMenu.value = Menu.EDIT
+    }
+
+    fun isComponentList() {
+        _isSideBarMenu.value = Menu.COMPONENT_LIST
     }
 
     companion object {

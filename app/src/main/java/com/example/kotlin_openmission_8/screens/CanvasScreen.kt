@@ -130,7 +130,7 @@ fun CanvasScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .weight(if (isShowSideBar) 0.75f else 0.9f)
+                        .weight(if (isShowSideBar) 0.75f else 0.95f)
                         .fillMaxSize()
                         .background(Color(0xFFF1F1F1))
                         .padding(32.dp), // 캔버스 주위의 여백
@@ -152,7 +152,7 @@ fun CanvasScreen(
                     modifier = if (isShowSideBar) {
                         Modifier.weight(0.25f)
                     } else {
-                        Modifier.weight(0.1f)
+                        Modifier.weight(0.05f)
                     },
                     isShowSideBar = isShowSideBar,
                     isLandscape = false,
@@ -162,6 +162,5 @@ fun CanvasScreen(
                 )
             }
         }
-
     }
 }

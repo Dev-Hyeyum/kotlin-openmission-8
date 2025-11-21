@@ -4,8 +4,10 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
@@ -40,11 +42,13 @@ fun MainContentArea(
                     translationY = canvasOffsetY
                 }
         ) {
-            componentsList.forEach { component ->
-                ComponentBox(
-                    component = component,
-                    viewModel = viewModel
-                )
+            componentsList.sortedBy { it.layer }.forEach { component ->
+                key(component.id) { // 👈 [핵심 수정] key Modifier 추가
+                    ComponentBox(
+                        component = component,
+                        viewModel = viewModel
+                    )
+                }
             }
         }
 
