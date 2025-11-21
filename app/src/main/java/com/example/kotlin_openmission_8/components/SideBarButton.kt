@@ -80,7 +80,7 @@ fun SideBarButton(
                     imageLauncher.launch("image/*") // 갤러리 열기
                     Toast.makeText(context, "$label 컴포넌트 생성 요청 (파일 선택)", Toast.LENGTH_SHORT).show()
                 }
-                ComponentType.Text, ComponentType.Button -> {
+                ComponentType.Text, ComponentType.Button, ComponentType.InputField -> {
                     showDialog = true
                 }
                 ComponentType.InputField -> {
