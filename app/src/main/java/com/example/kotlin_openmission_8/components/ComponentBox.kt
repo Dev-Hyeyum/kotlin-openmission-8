@@ -62,8 +62,6 @@ fun ComponentBox(
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     var text by remember { mutableStateOf(component.text) }
 
-//    val selectedComponent by viewModel.component.collectAsState()
-//    val isSelected = component.id == selectedComponent.id
     val currentStyle by rememberUpdatedState(component.style)
     val currentActions by rememberUpdatedState(component.actions)
     val currentImageUrl by rememberUpdatedState(component.imageUrl)
