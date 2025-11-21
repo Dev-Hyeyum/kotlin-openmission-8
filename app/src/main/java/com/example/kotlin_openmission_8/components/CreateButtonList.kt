@@ -34,7 +34,7 @@ fun CreateButtonList(
         ButtonItem("사진", ComponentType.Image),
         ButtonItem("텍스트", ComponentType.Text),
         ButtonItem("드롭다운", ComponentType.Dropdown),
-        ButtonItem("항목 5", ComponentType.Dummy),
+        ButtonItem("입력 창", ComponentType.InputField),
         ButtonItem("항목 6", ComponentType.Dummy),
         ButtonItem("항목 7", ComponentType.Dummy),
         ButtonItem("항목 8", ComponentType.Dummy),

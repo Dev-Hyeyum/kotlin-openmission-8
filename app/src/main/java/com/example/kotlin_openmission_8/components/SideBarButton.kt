@@ -80,8 +80,24 @@ fun SideBarButton(
                     imageLauncher.launch("image/*") // 갤러리 열기
                     Toast.makeText(context, "$label 컴포넌트 생성 요청 (파일 선택)", Toast.LENGTH_SHORT).show()
                 }
-                ComponentType.Text, ComponentType.Button -> {
+                ComponentType.Text, ComponentType.Button, ComponentType.InputField -> {
                     showDialog = true
+                }
+                ComponentType.InputField -> {
+                    val newComponent = Component(
+                        action = ComponentAction.Create,
+                        type = ComponentType.InputField,
+                        text = "",
+                        width = 300f,
+                        height = 60f,
+                        style = ComponentStyle(
+                            backgroundColor = "#FFFFFFFF", // 흰색 배경
+                            fontColor = "#FF000000",       // 검정 글씨
+                            borderColor = "#FF888888",     // 회색 테두리
+                        )
+                    )
+                    viewModel.postComponent(newComponent)
+                    Toast.makeText(context, "입력창 생성 완료", Toast.LENGTH_SHORT).show()
                 }
                 else -> {
                     val newComponent = Component(

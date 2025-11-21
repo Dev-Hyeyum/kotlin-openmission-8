@@ -115,12 +115,13 @@ fun CreateMenu(
         NumberDataField(data = offsetX, label = "offsetX", changeData = { offsetX = it })
         NumberDataField(data = offsetY, label = "offsetY", changeData = { offsetY = it })
 
-        if (component.type == ComponentType.Text || component.type == ComponentType.Button) {
+        if (component.type == ComponentType.Text || component.type == ComponentType.Button || component.type == ComponentType.InputField) {
+            val labelText = if (component.type == ComponentType.InputField) "Placeholder (안내 문구)" else "Text"
             OutlinedTextField(
                 value = text.toString(),
                 modifier = Modifier.fillMaxWidth(0.9f),
                 onValueChange = { text = it },
-                label = { Text("Text") }
+                label = { Text(labelText) }
             )
         }
         val fontWeightOptions = listOf("Normal", "Bold", "Medium", "Light")

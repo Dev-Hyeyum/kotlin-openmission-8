@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -175,7 +176,7 @@ fun ComponentBox(
                 1.dp,
                 composeBorderColor,
                 shape = RoundedCornerShape(composeBorderRadius),
-                )
+            )
             .background(
                 composeBackgroundColor,
                 shape = RoundedCornerShape(composeBorderRadius)
@@ -231,6 +232,21 @@ fun ComponentBox(
                 modifier = Modifier.fillMaxSize(), // 박스 크기만큼 꽉 채우기
                 contentScale = ContentScale.Crop // 캔버스 크기에 맞게 자르기
             )
+        } else if (component.type == ComponentType.InputField) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White) // 배경은 흰색
+                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp)), // 테두리
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = if (text.isNullOrEmpty()) "입력창 (Input)" else text!!,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(start = 10.dp),
+                    fontSize = 14.sp
+                )
+            }
         } else {
             // Image 타입이 아니거나 URL이 없으면 텍스트를 그림
             Text(
