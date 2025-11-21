@@ -176,7 +176,7 @@ fun ComponentBox(
     }
     Box(
         modifier = Modifier
-            .zIndex(zIndexValue)
+            .zIndex(if (isSelected) 100f else zIndexValue)
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
             .border(
