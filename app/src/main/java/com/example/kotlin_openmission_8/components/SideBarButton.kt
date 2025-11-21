@@ -39,6 +39,7 @@ import com.example.kotlin_openmission_8.model.ComponentStyle
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
+import com.example.kotlin_openmission_8.model.EventType
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,12 +53,12 @@ fun SideBarButton(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var writeText by remember { mutableStateOf("") }
-    var selectedEventType by remember { mutableStateOf("SHOW_TOAST") }
+    var selectedEventType by remember { mutableStateOf(EventType.SHOW_TOAST) }
     var eventMessage by remember { mutableStateOf("") }
     var eventUrl by remember { mutableStateOf("") }
     var isDropdownExpanded by remember { mutableStateOf(false) } // 드롭다운 상태
 
-    val eventOptions = remember { listOf("SHOW_TOAST", "OPEN_LINK", "NONE") }
+    val eventOptions = remember { EventType.entries }
     val scope = rememberCoroutineScope()
 
     val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -112,7 +113,7 @@ fun SideBarButton(
                     TextField(
                         value = writeText,
                         onValueChange = { writeText = it },
-                        label = { Text("버튼 텍스트 (Label)") },
+                        label = { Text("컴포넌트 텍스트 (Label)") },
                         singleLine = true
                     )
 
@@ -129,9 +130,9 @@ fun SideBarButton(
                             TextField(
                                 modifier = Modifier.menuAnchor(),
                                 readOnly = true,
-                                value = selectedEventType,
+                                value = selectedEventType.label,
                                 onValueChange = {},
-                                label = { Text("동작 선택") },
+                                label = { Text("이벤트 종류") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
                             )
                             ExposedDropdownMenu(
@@ -140,7 +141,7 @@ fun SideBarButton(
                             ) {
                                 eventOptions.forEach { option ->
                                     DropdownMenuItem(
-                                        text = { Text(option) },
+                                        text = { Text(option.label) },
                                         onClick = {
                                             selectedEventType = option
                                             isDropdownExpanded = false
@@ -151,18 +152,19 @@ fun SideBarButton(
                         }
 
                         when (selectedEventType) {
-                            "SHOW_TOAST" -> TextField(
+                            EventType.SHOW_TOAST -> TextField(
                                 value = eventMessage,
                                 onValueChange = { eventMessage = it },
                                 label = { Text("토스트 메시지 내용") },
                                 singleLine = true
                             )
-                            "OPEN_LINK", "REDIRECT_URL" -> TextField(
+                            EventType.OPEN_LINK -> TextField(
                                 value = eventUrl,
                                 onValueChange = { eventUrl = it },
                                 label = { Text("이동할 URL") },
                                 singleLine = true
                             )
+                            else -> { /* NONE 등 처리 없음 */ }
                         }
                     }
                 }
@@ -170,18 +172,33 @@ fun SideBarButton(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val buttonStyle = ComponentStyle(
-                            backgroundColor = "#FF6DB7B1", // 사이드바 버튼 색상과 유사
-                            fontColor = "#FFFFFFFF",       // 흰색 글씨
-                            borderRadius = 10.0f,         // 둥근 모서리 고정
-                        )
+                        val finalStyle = if (componentType == ComponentType.Button) {
+                            // 버튼일 때: 청록색 배경, 둥근 모서리
+                            ComponentStyle(
+                                backgroundColor = "#FF6DB7B1",
+                                fontColor = "#FFFFFFFF",
+                                borderRadius = 10.0f,
+                            )
+                        } else {
+                            // 텍스트일 때: 투명 배경, 직각 모서리, 검정 글씨
+                            ComponentStyle(
+                                backgroundColor = "#FFFFFFFF", // 흰색
+                                fontColor = "#FF000000",       // 검정색
+                                borderRadius = 0.0f,           // 직각
+                            )
+                        }
 
-                        val newActions = if (componentType == ComponentType.Button && selectedEventType != "NONE") {
-                            val actionValue = if (selectedEventType == "SHOW_TOAST") eventMessage else eventUrl
+                        val newActions = if (componentType == ComponentType.Button && selectedEventType != EventType.NONE) {
+                            val actionValue = when (selectedEventType) {
+                                EventType.SHOW_TOAST -> eventMessage
+                                EventType.OPEN_LINK -> eventUrl
+                                else -> ""
+                            }
+
                             listOf(
                                 EventAction(
                                     trigger = "OnClick",
-                                    type = selectedEventType,
+                                    type = selectedEventType.name, // [수정] Enum -> String 변환
                                     value = actionValue,
                                     targetId = null
                                 )
@@ -194,7 +211,7 @@ fun SideBarButton(
                             action = ComponentAction.Create,
                             type = componentType,
                             text = writeText,
-                            style = buttonStyle,
+                            style = finalStyle, // [수정] 분기된 스타일 적용
                             actions = newActions
                         )
 
