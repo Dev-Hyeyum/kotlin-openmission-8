@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
 import com.example.kotlin_openmission_8.BuildConfig
@@ -61,10 +63,14 @@ fun ComponentBox(
     var boxWidth by remember { mutableFloatStateOf(component.width) }
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     var text by remember { mutableStateOf(component.text) }
+    var layer by remember { mutableFloatStateOf(component.layer) }
 
     val currentStyle by rememberUpdatedState(component.style)
     val currentActions by rememberUpdatedState(component.actions)
     val currentImageUrl by rememberUpdatedState(component.imageUrl)
+
+    val selectedComponent by viewModel.component.collectAsState()
+    val isSelected = component.id == selectedComponent.id
 
     var showSizeController by remember { mutableStateOf(false) }
 
@@ -91,6 +97,7 @@ fun ComponentBox(
         text = component.text
     }
 
+    val zIndexValue = layer
     // dp 단위로 변경
     val boxWidthDp = with(density) { boxWidth.toDp() }
     val boxHeightDp = with(density) { boxHeight.toDp() }
@@ -169,11 +176,12 @@ fun ComponentBox(
     }
     Box(
         modifier = Modifier
+            .zIndex(zIndexValue)
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .size(boxWidthDp, boxHeightDp)
             .border(
-                1.dp,
-                composeBorderColor,
+                width = 1.dp,
+                color = if (isSelected) Color.Blue else composeBorderColor,
                 shape = RoundedCornerShape(composeBorderRadius),
             )
             .background(
@@ -195,6 +203,8 @@ fun ComponentBox(
                     }
 
                     val down = awaitFirstDown()
+                    viewModel.getComponent(component.id)
+
                     var totalPan = Offset.Zero
 
                     do {
