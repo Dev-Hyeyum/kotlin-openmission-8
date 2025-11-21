@@ -170,12 +170,23 @@ fun SideBarButton(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val buttonStyle = ComponentStyle(
-                            backgroundColor = "#FF6DB7B1", // 사이드바 버튼 색상과 유사
-                            fontColor = "#FFFFFFFF",       // 흰색 글씨
-                            borderRadius = 10.0f,         // 둥근 모서리 고정
-                        )
+                        val finalStyle = if (componentType == ComponentType.Button) {
+                            // 버튼일 때: 청록색 배경, 둥근 모서리
+                            ComponentStyle(
+                                backgroundColor = "#FF6DB7B1",
+                                fontColor = "#FFFFFFFF",
+                                borderRadius = 10.0f,
+                            )
+                        } else {
+                            // 텍스트일 때: 투명 배경, 직각 모서리, 검정 글씨
+                            ComponentStyle(
+                                backgroundColor = "#FFFFFFFF", // 흰색
+                                fontColor = "#FF000000",       // 검정색
+                                borderRadius = 0.0f,           // 직각
+                            )
+                        }
 
+                        // 버튼일 때만 액션 리스트 생성
                         val newActions = if (componentType == ComponentType.Button && selectedEventType != "NONE") {
                             val actionValue = if (selectedEventType == "SHOW_TOAST") eventMessage else eventUrl
                             listOf(
@@ -194,7 +205,7 @@ fun SideBarButton(
                             action = ComponentAction.Create,
                             type = componentType,
                             text = writeText,
-                            style = buttonStyle,
+                            style = finalStyle,
                             actions = newActions
                         )
 
