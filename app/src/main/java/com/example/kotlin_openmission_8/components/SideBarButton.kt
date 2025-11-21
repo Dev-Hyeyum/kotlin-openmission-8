@@ -112,7 +112,7 @@ fun SideBarButton(
                     TextField(
                         value = writeText,
                         onValueChange = { writeText = it },
-                        label = { Text("버튼 텍스트 (Label)") },
+                        label = { Text("컴포넌트 텍스트 (Label)") },
                         singleLine = true
                     )
 
