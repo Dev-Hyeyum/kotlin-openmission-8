@@ -173,7 +173,8 @@
 
             if (command.text !== undefined && command.text !== null) {
                 if (el.tagName === "INPUT") {
-                    el.value = command.text; // Input은 value 속성 사용
+                    el.placeholder = command.text;
+                    el.value = "";
                 } else {
                     el.innerText = command.text; // 나머지는 innerText 사용
                 }
