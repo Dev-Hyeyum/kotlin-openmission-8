@@ -9,12 +9,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.kotlin_openmission_8.model.Components
+import com.example.kotlin_openmission_8.model.Menu
 
 
 @Composable
@@ -28,88 +30,55 @@ fun SideBar(
 ) {
     val isSideBarMenu by viewModel.isSideBarMenu.collectAsState()
 
-    // 가로일 경우
-    if (isLandscape) {
-        if (isShowSideBar) {
-            Column(
-                modifier = modifier
-                    .fillMaxHeight()
-            ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    MenuBar(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        viewModel = viewModel,
-                        isShowFunction = { viewModel.notShowSideBar() },
-                        onNavigateBack = onNavigateBack
-                    )
-                }
-                if (isSideBarMenu) {
-                    CreateButtonList(
-                        context = context,
-                        viewModel = viewModel,
-                        modifier = Modifier.weight(0.25f)
-                    )
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+    ) {
+        Row (
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            MenuBar(
+                imageVector = if (isLandscape) {
+                    if (isShowSideBar) {
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight
+                    } else {
+                        Icons.Default.KeyboardArrowLeft
+                    }
                 } else {
-                    CreateMenu(
-                        viewModel = viewModel
-                    )
-                }
-            }
-        } else {
-            Column(
-                modifier = modifier.fillMaxHeight()
-            ) {
-                MenuBar(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    viewModel = viewModel,
-                    isShowFunction = { viewModel.showSideBar() },
-                    onNavigateBack = onNavigateBack
-                )
-            }
+                    if (isShowSideBar) {
+                        Icons.Default.KeyboardArrowDown
+                    } else {
+                        Icons.Default.KeyboardArrowUp
+                    }
+                },
+                viewModel = viewModel,
+                isShowFunction = if (isShowSideBar) {
+                    { viewModel.notShowSideBar() }
+                } else {
+                    { viewModel.showSideBar() }
+                },
+                onNavigateBack = onNavigateBack
+            )
         }
-        // 세로일 경우
-    } else {
         if (isShowSideBar) {
-            Column(
-                modifier = modifier
-                    .fillMaxHeight()
-            ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    MenuBar(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        viewModel = viewModel,
-                        isShowFunction = { viewModel.notShowSideBar() },
-                        onNavigateBack = onNavigateBack
-                    )
-                }
-                if (isSideBarMenu) {
-                    CreateButtonList(
-                        context = context,
-                        viewModel = viewModel,
-                        modifier = Modifier.weight(0.25f)
-                    )
-                } else {
+            when(isSideBarMenu) {
+                Menu.CREATE -> {
                     CreateMenu(
+                        context = context,
                         viewModel = viewModel
                     )
                 }
-            }
-        } else {
-            Row(
-                modifier = modifier.fillMaxWidth()
-            ) {
-                MenuBar(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    viewModel = viewModel,
-                    isShowFunction = { viewModel.showSideBar() },
-                    onNavigateBack = onNavigateBack
-                )
+                Menu.EDIT -> {
+                    EditMenu(
+                        viewModel = viewModel
+                    )
+                }
+                else -> {
+                    ComponentListMenu(
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
-
 }
