@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -38,32 +39,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.example.kotlin_openmission_8.model.Component
-import com.example.kotlin_openmission_8.model.Components
-import kotlin.math.roundToInt
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import coil3.compose.AsyncImage
 import com.example.kotlin_openmission_8.BuildConfig
+import com.example.kotlin_openmission_8.model.Component
 import com.example.kotlin_openmission_8.model.ComponentType
+import com.example.kotlin_openmission_8.model.Components
+import kotlin.math.roundToInt
 
 @Composable
 fun ComponentBox(
     component: Component,
     viewModel: Components
 ) {
-    // 화면 밀도 데이터를 가지고 있는 객체, dp <-> px 를 변화할 때 사용
     val density = LocalDensity.current
 
-    // component의 데이터
+    // 로컬 상태 (위치/크기)
     var offsetX by remember { mutableFloatStateOf(component.offsetX) }
     var offsetY by remember { mutableFloatStateOf(component.offsetY) }
     var boxWidth by remember { mutableFloatStateOf(component.width) }
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     var text by remember { mutableStateOf(component.text) }
 
-    // 선택된 component
     val selectedComponent by viewModel.component.collectAsState()
     val isSelected = component.id == selectedComponent.id
+    val currentStyle by rememberUpdatedState(component.style)
+    val currentActions by rememberUpdatedState(component.actions)
+    val currentImageUrl by rememberUpdatedState(component.imageUrl)
 
     // component를 업데이트하는 변수
     val commitUpdate = {
@@ -74,7 +77,9 @@ fun ComponentBox(
             width = boxWidth,
             height = boxHeight,
             text = text,
-            style = component.style
+            style = currentStyle,
+            actions = currentActions,
+            imageUrl = currentImageUrl
         )
     }
 
@@ -177,8 +182,8 @@ fun ComponentBox(
             )
             .pointerInput(Unit) {
                 awaitEachGesture {
-                    awaitFirstDown()
-                    var totalPan = Offset.Zero // 총 이동 거리 누적
+                    val down = awaitFirstDown()
+                    var totalPan = Offset.Zero
                     var isZooming = false
 
                     do {
@@ -206,15 +211,13 @@ fun ComponentBox(
                         }
                     } while (event.changes.any { it.pressed })
 
-                    // === 손을 뗐을 때 판별 ===
-                    // 1. 이동 거리가 짧고 줌도 안 했다면 -> 클릭으로 간주!
                     if (totalPan.getDistance() < touchSlop && !isZooming) {
                         viewModel.getComponent(component.id)
                         viewModel.isEditMenu()
-                    }
-                    // 2. 드래그나 줌을 했다면 -> 서버 업데이트
-                    else {
-                        commitUpdate() // ⬅️ 정의된 커밋 함수 사용
+                        down.consume() // 클릭 이벤트 소비
+                    } else {
+                        // 드래그 종료 시 업데이트
+                        commitUpdate()
                     }
                 }
             },
@@ -223,7 +226,6 @@ fun ComponentBox(
         if (component.type == ComponentType.Image && component.imageUrl != null) {
             // 이미지가 있다면 AsyncImage를 사용하여 로드
             AsyncImage(
-                // 💡 서버에서 온 URL을 안드로이드용으로 수정해서 사용
                 model = getCorrectedImageUrl(component.imageUrl),
                 contentDescription = component.text ?: "Uploaded Image",
                 modifier = Modifier.fillMaxSize(), // 박스 크기만큼 꽉 채우기
@@ -259,7 +261,7 @@ private fun BoxScope.Handle(
     size: Dp = 8.dp,
     color: Color = Color.Green,
     onDrag: (Offset) -> Unit,
-    onCommit: () -> Unit // ✨ [NEW PARAM] 드래그 종료 시 호출할 함수
+    onCommit: () -> Unit
 ) {
     val bias = alignment as? BiasAlignment ?: return
     Box(
