@@ -5,8 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
-import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,11 +62,13 @@ fun ComponentBox(
     var boxHeight by remember { mutableFloatStateOf(component.height) }
     var text by remember { mutableStateOf(component.text) }
 
-    val selectedComponent by viewModel.component.collectAsState()
-    val isSelected = component.id == selectedComponent.id
+//    val selectedComponent by viewModel.component.collectAsState()
+//    val isSelected = component.id == selectedComponent.id
     val currentStyle by rememberUpdatedState(component.style)
     val currentActions by rememberUpdatedState(component.actions)
     val currentImageUrl by rememberUpdatedState(component.imageUrl)
+
+    var showSizeController by remember { mutableStateOf(false) }
 
     // component를 업데이트하는 변수
     val commitUpdate = {
@@ -182,38 +183,40 @@ fun ComponentBox(
                 shape = RoundedCornerShape(composeBorderRadius)
             )
             .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        showSizeController = !showSizeController
+                    }
+                )
+            }
+            .pointerInput(showSizeController) {
                 awaitEachGesture {
+                    if (showSizeController) {
+                        awaitPointerEvent()
+                        return@awaitEachGesture
+                    }
+
                     val down = awaitFirstDown()
                     var totalPan = Offset.Zero
-                    var isZooming = false
 
                     do {
                         val event = awaitPointerEvent()
                         val panChange = event.calculatePan()
-                        val zoomChange = event.calculateZoom()
 
                         // 이동 거리 누적
                         totalPan += panChange
-                        // 줌이 발생했거나, 총 이동 거리가 touchSlop을 넘으면 드래그/줌으로 간주
                         val isDragging = totalPan.getDistance() > touchSlop
-                        if (zoomChange != 1f) isZooming = true
 
-                        if (isDragging || isZooming) {
+                        if (isDragging) {
                             // UI 업데이트
                             offsetX = (offsetX + panChange.x).coerceAtLeast(0f)
                             offsetY = (offsetY + panChange.y).coerceAtLeast(0f)
 
-                            if (zoomChange != 1f) {
-                                boxWidth = (boxWidth * zoomChange).coerceAtLeast(50f)
-                                boxHeight = (boxHeight * zoomChange).coerceAtLeast(50f)
-                            }
-                            // 이벤트를 소비하여 다른 요소가 처리하지 않도록 함
                             event.changes.forEach { it.consume() }
                         }
                     } while (event.changes.any { it.pressed })
 
-                    if (totalPan.getDistance() < touchSlop && !isZooming) {
-                        viewModel.getComponent(component.id)
+                    if (totalPan.getDistance() < touchSlop) {
                         viewModel.isEditMenu()
                         down.consume() // 클릭 이벤트 소비
                     } else {
@@ -224,41 +227,45 @@ fun ComponentBox(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (component.type == ComponentType.Image && component.imageUrl != null) {
-            // 이미지가 있다면 AsyncImage를 사용하여 로드
-            AsyncImage(
-                model = getCorrectedImageUrl(component.imageUrl),
-                contentDescription = component.text ?: "Uploaded Image",
-                modifier = Modifier.fillMaxSize(), // 박스 크기만큼 꽉 채우기
-                contentScale = ContentScale.Crop // 캔버스 크기에 맞게 자르기
-            )
-        } else if (component.type == ComponentType.InputField) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White) // 배경은 흰색
-                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp)), // 테두리
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = if (text.isNullOrEmpty()) "입력창 (Input)" else text!!,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(start = 10.dp),
-                    fontSize = 14.sp
+        when (component.type) {
+            ComponentType.Image if component.imageUrl != null -> {
+                // 이미지가 있다면 AsyncImage를 사용하여 로드
+                AsyncImage(
+                    model = getCorrectedImageUrl(component.imageUrl),
+                    contentDescription = component.text ?: "Uploaded Image",
+                    modifier = Modifier.fillMaxSize(), // 박스 크기만큼 꽉 채우기
+                    contentScale = ContentScale.Crop // 캔버스 크기에 맞게 자르기
                 )
             }
-        } else {
-            // Image 타입이 아니거나 URL이 없으면 텍스트를 그림
-            Text(
-                text = text ?: "",
-                color = composeFontColor,
-                fontSize = composeFontSize,
-                fontWeight = composeFontWeight,
-                fontFamily = composeFontFamily
-            )
+            ComponentType.InputField -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White) // 배경은 흰색
+                        .border(1.dp, Color.Gray, RoundedCornerShape(4.dp)), // 테두리
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = if (text.isNullOrEmpty()) "입력창 (Input)" else text!!,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            else -> {
+                // Image 타입이 아니거나 URL이 없으면 텍스트를 그림
+                Text(
+                    text = text ?: "",
+                    color = composeFontColor,
+                    fontSize = composeFontSize,
+                    fontWeight = composeFontWeight,
+                    fontFamily = composeFontFamily
+                )
+            }
         }
 
-        if (isSelected) {
+        if (showSizeController) {
             Handle(Alignment.TopStart, onDrag = { handleResize(Alignment.TopStart, it) }, onCommit = commitUpdate)
             Handle(Alignment.TopCenter, onDrag = { handleResize(Alignment.TopCenter, it) }, onCommit = commitUpdate)
             Handle(Alignment.TopEnd, onDrag = { handleResize(Alignment.TopEnd, it) }, onCommit = commitUpdate)
