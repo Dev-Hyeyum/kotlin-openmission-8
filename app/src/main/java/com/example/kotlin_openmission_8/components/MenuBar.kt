@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -53,7 +54,7 @@ fun MenuBar(
             .fillMaxWidth() // 너비를 꽉 채움
             .horizontalScroll(rememberScrollState()) // 가로 스크롤 가능하게 설정
     ) {
-// 접기 버튼
+        // 접기 버튼
         IconButton(
             onClick = {
                 isShowFunction()
@@ -84,6 +85,17 @@ fun MenuBar(
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = "컴포넌트를 설정하는 메뉴 버튼"
+            )
+        }
+        // 현재 컴포넌트들을 보여주는 메뉴를 여는 버튼
+        IconButton(
+            onClick = {
+                viewModel.isComponentList()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = "현재 컴포넌트들을 보여주는 메뉴 버튼"
             )
         }
         // 0,0으로 보드를 돌리는 함수
