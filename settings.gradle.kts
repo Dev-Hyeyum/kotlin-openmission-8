@@ -20,5 +20,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "kotlin-openmission-8"
-include(":app")
+if (file("local.properties").exists()) {
+    include(":app")
+}
 include(":server")
