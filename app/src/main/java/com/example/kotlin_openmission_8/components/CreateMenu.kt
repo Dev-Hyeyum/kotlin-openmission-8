@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kotlin_openmission_8.model.ComponentType
 import com.example.kotlin_openmission_8.model.Components
 import com.example.kotlin_openmission_8.model.EventAction
+import com.example.kotlin_openmission_8.model.EventType
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import androidx.core.graphics.toColorInt
 
@@ -57,9 +58,9 @@ fun CreateMenu(
     var borderRadius by remember { mutableFloatStateOf(component.style.borderRadius) }
 
     // 이벤트(액션) 관련 상태
-    var selectedActionType by remember { mutableStateOf("NONE") }
+    var selectedActionType by remember { mutableStateOf(EventType.NONE) }
     var actionValue by remember { mutableStateOf("") }
-    val actionOptions = listOf("NONE", "SHOW_TOAST", "OPEN_LINK", "SET_TEXT")
+    val actionOptions = remember { EventType.values().map { it.label } }
     var selectedTargetId by remember { mutableStateOf<String?>(null) } // 타겟 ID 저장
 
     // 색 조작하기 위한 컨트롤러
@@ -85,11 +86,15 @@ fun CreateMenu(
         // 기존 액션 정보 불러오기
         val firstAction = component.actions.firstOrNull()
         if (firstAction != null) {
-            selectedActionType = firstAction.type
+            selectedActionType = try {
+                EventType.valueOf(firstAction.type)
+            } catch (e: Exception) {
+                EventType.NONE
+            }
             actionValue = firstAction.value
             selectedTargetId = firstAction.targetId
         } else {
-            selectedActionType = "NONE"
+            selectedActionType = EventType.NONE
             actionValue = ""
         }
 
@@ -177,13 +182,15 @@ fun CreateMenu(
             DropDownMenu(
                 options = actionOptions,
                 label = "클릭 시 동작",
-                currentSelection = selectedActionType,
-                onSelectionChange = { selectedActionType = it },
+                currentSelection = selectedActionType.label,
+                onSelectionChange = { label ->
+                    selectedActionType = EventType.values().find { it.label == label } ?: EventType.NONE
+                },
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             // 액션 값 입력 (NONE이 아닐 때만 표시)
-            if (selectedActionType == "SET_TEXT") {
+            if (selectedActionType == EventType.SET_TEXT) {
                 val otherComponents = allComponents.filter { it.id != component.id }
                 val targetList = listOf(component) + otherComponents
 
@@ -228,11 +235,11 @@ fun CreateMenu(
             }
 
             // 값 입력
-            if (selectedActionType != "NONE") {
+            if (selectedActionType != EventType.NONE) {
                 val labelText = when (selectedActionType) {
-                    "SHOW_TOAST" -> "메시지 내용"
-                    "OPEN_LINK" -> "이동할 URL"
-                    "SET_TEXT" -> "변경할 텍스트 값"
+                    EventType.SHOW_TOAST -> "메시지 내용"
+                    EventType.OPEN_LINK -> "이동할 URL"
+                    EventType.SET_TEXT -> "변경할 텍스트 값"
                     else -> "값 입력"
                 }
                 OutlinedTextField(
@@ -274,13 +281,13 @@ fun CreateMenu(
                     )
 
                     // 선택된 이벤트 정보를 리스트로 구성
-                    val newActions = if (selectedActionType != "NONE") {
+                    val newActions = if (selectedActionType != EventType.NONE) {
                         listOf(
                             EventAction(
                                 trigger = "OnClick",
-                                type = selectedActionType,
+                                type = selectedActionType.name,
                                 value = actionValue,
-                                targetId = if (selectedActionType == "SET_TEXT") selectedTargetId else null                            )
+                                targetId = if (selectedActionType == EventType.SET_TEXT) selectedTargetId else null                            )
                         )
                     } else {
                         emptyList()
