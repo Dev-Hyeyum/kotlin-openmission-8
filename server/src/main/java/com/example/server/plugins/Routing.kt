@@ -56,9 +56,7 @@ fun Application.configureRouting() {
         post("/create-canvas") {
             val roomId = CanvasManager.createCanvas() // 새 방 만들기
 
-            // TODO: url 부분을 실제 서버 IP로 변경하기
-            // (로컬 테스트 시: "http://localhost:8080")
-            val serverBaseUrl = "http://localhost:8080"
+            val serverBaseUrl = "${call.request.local.scheme}://${call.request.local.serverHost}:${call.request.local.serverPort}"
 
             // 'app'에게 "이 링크를 사용자에게 전달해"라고 URL 응답
             call.respond(
@@ -149,8 +147,7 @@ fun Application.configureRouting() {
         post("/upload-image/{roomId}") {
             val roomId = call.parameters["roomId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
 
-            // TODO: 반드시 실제 서버 IP로 변경해야 합니다!
-            val serverBaseUrl = "http://localhost:8080"
+            val serverBaseUrl = "${call.request.local.scheme}://${call.request.local.serverHost}:${call.request.local.serverPort}"
 
             val multipart = call.receiveMultipart()
             var uploadedFileName: String? = null // uploads/{roomId}/uuid.jpg 형태
