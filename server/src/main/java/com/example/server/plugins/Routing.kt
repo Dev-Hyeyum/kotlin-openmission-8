@@ -23,31 +23,14 @@ fun Application.configureRouting() {
     }
 
     routing {
-        // resources/static 폴더를 호스팅하는 설정 추가
-        // http://localhost:8080/test.html 로 접속
+        get("/ping") {
+            call.respondText("PONG! Server is Alive!")
+        }
         staticResources("/", "static")
         staticFiles("/uploads", uploadRoot)
 
-        get("/test.html") {
-            // 1. URL 파라미터에서 'room' ID를 가져옵니다.
-            val roomId = call.parameters["room"]
-            if (roomId == null) {
-                call.respond(HttpStatusCode.BadRequest, "Error: Room ID가 URL에 없습니다.")
-                return@get
-            }
 
-            // 2. CanvasManager에 'room' ID가 실제로 존재하는지 확인합니다.
-            val room = CanvasManager.getRoom(roomId)
-
-            if (room != null) {
-                // 3. (성공) 방이 존재하면 -> static 폴더의 test.html 파일을 전송합니다.
-                call.respondFile(File("resources/static/test.html"))
-            } else {
-                // 4. (실패) 방이 삭제되었거나 없으면 -> 404 Not Found 에러를 전송합니다.
-                call.respond(HttpStatusCode.NotFound, "Error: 삭제되었거나 존재하지 않는 캔버스입니다.")
-            }
-        }
-
+        // 방 목록 조회
         get("/rooms") {
             val roomIds = CanvasManager.getAllRoomIds()
             call.respond(roomIds)
@@ -56,18 +39,19 @@ fun Application.configureRouting() {
         post("/create-canvas") {
             val roomId = CanvasManager.createCanvas() // 새 방 만들기
 
+            // 서버의 현재 주소 자동 감지
             val serverBaseUrl = "${call.request.local.scheme}://${call.request.local.serverHost}:${call.request.local.serverPort}"
 
-            // 'app'에게 "이 링크를 사용자에게 전달해"라고 URL 응답
             call.respond(
                 mapOf(
                     "roomId" to roomId,
-                    // roomId 가 포함된 URL
+                    // 생성된 URL 반환
                     "url" to "$serverBaseUrl/test.html?room=$roomId"
                 )
             )
         }
 
+        // 방 삭제
         delete("/canvas/{roomId}") {
             val roomId = call.parameters["roomId"]
                 ?: return@delete call.respond(
@@ -75,7 +59,6 @@ fun Application.configureRouting() {
                     mapOf("status" to "Error", "message" to "Room ID가 없습니다.")
                 )
 
-            // CanvasManager의 삭제 함수 호출 (suspend 함수)
             val removedRoom = CanvasManager.deleteCanvas(roomId)
 
             if (removedRoom != null) {
@@ -121,7 +104,7 @@ fun Application.configureRouting() {
 
             val multipart = call.receiveMultipart()
 
-            // 1. ✨ [추가/수정] 룸 ID에 해당하는 서브 폴더 경로 생성
+            // 룸 ID에 해당하는 서브 폴더 경로 생성
             val roomSubDir = File(uploadRoot, roomId)
             if (!roomSubDir.exists()) {
                 roomSubDir.mkdirs() // 폴더가 없으면 생성
@@ -129,7 +112,7 @@ fun Application.configureRouting() {
 
             multipart.forEachPart { part ->
                 if (part is PartData.FileItem) {
-                    // 2. ✨ [수정] 파일명을 'thumbnail.png'로 고정하여 룸 폴더 안에 저장
+                    // 파일명을 'thumbnail.png'로 고정하여 룸 폴더 안에 저장
                     val fileName = "thumbnail.png"
                     val file = File(roomSubDir, fileName)
 
@@ -152,7 +135,7 @@ fun Application.configureRouting() {
             val multipart = call.receiveMultipart()
             var uploadedFileName: String? = null // uploads/{roomId}/uuid.jpg 형태
 
-            // 1. ✨ [추가/수정] 룸 ID에 해당하는 서브 폴더 경로 생성
+            // 룸 ID에 해당하는 서브 폴더 경로 생성
             val roomSubDir = File(uploadRoot, roomId)
             if (!roomSubDir.exists()) {
                 roomSubDir.mkdirs() // 폴더가 없으면 생성
@@ -161,10 +144,10 @@ fun Application.configureRouting() {
             multipart.forEachPart { part ->
                 if (part is PartData.FileItem) {
                     val fileName = UUID.randomUUID().toString() + ".jpg"
-                    // 2. ✨ [수정] 이미지를 룸 ID 서브 폴더 안에 저장
+                    // 이미지를 룸 ID 서브 폴더 안에 저장
                     val file = File(roomSubDir, fileName)
 
-                    // 3. ✨ [핵심] URL에 포함될 파일명(폴더 포함)
+                    // URL에 포함될 파일명(폴더 포함)
                     uploadedFileName = "$roomId/$fileName"
 
                     part.streamProvider().use { input ->
@@ -177,7 +160,7 @@ fun Application.configureRouting() {
             }
 
             if (uploadedFileName != null) {
-                // 4. ✨ [수정] 응답 URL에 'uploads' 경로를 포함
+                // 응답 URL에 'uploads' 경로를 포함
                 val imageUrl = "$serverBaseUrl/uploads/$uploadedFileName"
                 call.respond(mapOf("imageUrl" to imageUrl))
             } else {
