@@ -18,7 +18,7 @@ kotlin {
 }
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    mainClass = "com.example.server.ApplicationKt"
 }
 
 dependencies {
