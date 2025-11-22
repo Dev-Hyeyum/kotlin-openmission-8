@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.kotlin_openmission_8.components.MainContentArea
 import com.example.kotlin_openmission_8.components.SideBar
+import com.example.kotlin_openmission_8.controller.SystemBarsHider
 import com.example.kotlin_openmission_8.controller.captureView
 import com.example.kotlin_openmission_8.model.Components
 import kotlinx.coroutines.launch
@@ -51,6 +52,8 @@ fun CanvasScreen(
 
     val view = LocalView.current
     val window = (view.context as? Activity)?.window
+
+    SystemBarsHider()
 
     val captureAndExit = {
         scope.launch {
