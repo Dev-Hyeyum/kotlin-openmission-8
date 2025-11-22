@@ -3,6 +3,8 @@ package com.example.kotlin_openmission_8.components
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -52,6 +54,8 @@ fun MenuBar(
     Row(
         modifier = Modifier
             .fillMaxWidth() // 너비를 꽉 채움
+            .border(width = 1.dp, color = Color.Black)
+            .background(color = Color(0xFFF8FFFF))
             .horizontalScroll(rememberScrollState()) // 가로 스크롤 가능하게 설정
     ) {
         // 접기 버튼

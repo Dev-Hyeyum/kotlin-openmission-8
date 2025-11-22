@@ -1,5 +1,6 @@
 package com.example.kotlin_openmission_8.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -117,7 +118,7 @@ fun EditMenu(
     }
 
     Column (
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+        modifier = Modifier.background(Color(0xFFFAFAFA)).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

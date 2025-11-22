@@ -1,5 +1,6 @@
 package com.example.kotlin_openmission_8.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,7 @@ fun ComponentListMenu(
     val components by viewModel.components.collectAsState()
 
     Column(
-        modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState())
+        modifier = Modifier.fillMaxHeight().background(Color(0xFFFAFAFA)).verticalScroll(rememberScrollState())
     ) {
         components.forEach { component ->
             Box(

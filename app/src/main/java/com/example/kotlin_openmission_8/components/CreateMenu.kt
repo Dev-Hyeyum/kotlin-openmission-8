@@ -50,7 +50,7 @@ fun CreateMenu(
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .background(Color(0xFF4D4D4D))
+            .background(Color(0xFFFAFAFA))
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
