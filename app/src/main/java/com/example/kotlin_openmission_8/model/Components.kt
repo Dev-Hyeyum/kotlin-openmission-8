@@ -227,7 +227,8 @@ class Components(private val client: HttpClient): ViewModel() {
         style: ComponentStyle? = null,
         actions: List<EventAction>? = null,
         imageUrl: String? = null,
-        layer: Float? = null
+        layer: Float? = null,
+        options: List<String>? = null
     ) {
         viewModelScope.launch {
             _components.update { current ->
@@ -242,7 +243,8 @@ class Components(private val client: HttpClient): ViewModel() {
                             style = style ?: component.style,
                             actions = actions ?: component.actions,
                             imageUrl = imageUrl ?: component.imageUrl,
-                            layer = layer ?: component.layer
+                            layer = layer ?: component.layer,
+                            options = options ?: component.options
                         )
                     } else {
                         component

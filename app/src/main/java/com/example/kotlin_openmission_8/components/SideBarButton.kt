@@ -80,32 +80,10 @@ fun SideBarButton(
                     imageLauncher.launch("image/*") // 갤러리 열기
                     Toast.makeText(context, "$label 컴포넌트 생성 요청 (파일 선택)", Toast.LENGTH_SHORT).show()
                 }
-                ComponentType.Text, ComponentType.Button, ComponentType.InputField -> {
+                ComponentType.Text, ComponentType.Button, ComponentType.InputField, ComponentType.Dropdown -> {
                     showDialog = true
                 }
-                ComponentType.InputField -> {
-                    val newComponent = Component(
-                        action = ComponentAction.Create,
-                        type = ComponentType.InputField,
-                        text = "",
-                        width = 300f,
-                        height = 60f,
-                        style = ComponentStyle(
-                            backgroundColor = "#FFFFFFFF", // 흰색 배경
-                            fontColor = "#FF000000",       // 검정 글씨
-                            borderColor = "#FF888888",     // 회색 테두리
-                        )
-                    )
-                    viewModel.postComponent(newComponent)
-                    Toast.makeText(context, "입력창 생성 완료", Toast.LENGTH_SHORT).show()
-                }
-                else -> {
-                    val newComponent = Component(
-                        action = ComponentAction.Create,
-                        type = componentType
-                    )
-                    viewModel.postComponent(newComponent)
-                }
+                else -> {}
             }
         },
         modifier = modifier
@@ -182,26 +160,74 @@ fun SideBarButton(
                             )
                             else -> { /* NONE 등 처리 없음 */ }
                         }
+                    } else if(componentType == ComponentType.Dropdown) {
+                        var choiceNumber by remember { mutableStateOf(1) }
+                        var dropdownChoices by remember { mutableStateOf(List(choiceNumber) { "" }) }
+
+                        Text("선택지의 개수")
+                        IncreaseDecreaseBox(value = choiceNumber.toFloat(), onChangeValue = { newFloatValue ->
+                            val newInt = newFloatValue.toInt().coerceAtLeast(1) // 1 미만 방지
+
+                            // ✨ [핵심] 개수가 변경되면 리스트의 크기를 조정합니다.
+                            if (newInt != choiceNumber) {
+                                choiceNumber = newInt
+                                dropdownChoices = List(newInt) { index ->
+                                    // 기존 값은 유지하고, 새롭게 추가된 부분은 빈 문자열("")로 채웁니다.
+                                    dropdownChoices.getOrElse(index) { "" }
+                                }}})
+                        Column(Modifier.padding(top = 16.dp)) {
+                            (0 until choiceNumber).forEach { index ->
+                                TextField(
+                                    value = dropdownChoices[index],
+                                    onValueChange = { newValue ->
+                                        // 해당 인덱스의 값만 새로운 값으로 업데이트
+                                        dropdownChoices = dropdownChoices.toMutableList().apply {
+                                            this[index] = newValue
+                                        }
+                                    },
+                                    label = { Text("선택지 ${index + 1} 내용") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                )
+                            }
+                        }
                     }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val finalStyle = if (componentType == ComponentType.Button) {
-                            // 버튼일 때: 청록색 배경, 둥근 모서리
-                            ComponentStyle(
-                                backgroundColor = "#FF6DB7B1",
-                                fontColor = "#FFFFFFFF",
-                                borderRadius = 10.0f,
-                            )
-                        } else {
-                            // 텍스트일 때: 투명 배경, 직각 모서리, 검정 글씨
-                            ComponentStyle(
-                                backgroundColor = "#FFFFFFFF", // 흰색
-                                fontColor = "#FF000000",       // 검정색
-                                borderRadius = 0.0f,           // 직각
-                            )
+                        val finalStyle = when (componentType) {
+                            ComponentType.Button -> {
+                                // 버튼일 때: 청록색 배경, 둥근 모서리
+                                ComponentStyle(
+                                    backgroundColor = "#FF6DB7B1",
+                                    fontColor = "#FFFFFFFF",
+                                    borderRadius = 10.0f,
+                                )
+                            }
+                            ComponentType.InputField -> {
+                                ComponentStyle(
+                                    backgroundColor = "#FFFFFFFF", // 흰색 배경
+                                    fontColor = "#FF000000",       // 검정 글씨
+                                    borderColor = "#FF888888",     // 회색 테두리
+                                )
+                            }
+                            ComponentType.Dropdown -> {
+                                ComponentStyle(
+                                    backgroundColor = "#FFFFFFFF", // 흰색 배경
+                                    fontColor = "#FF000000",       // 검정 글씨
+                                    borderColor = "#FF888888",     // 회색 테두리
+                                )
+                            }
+                            else -> {
+                                // 텍스트일 때: 투명 배경, 직각 모서리, 검정 글씨
+                                ComponentStyle(
+                                    backgroundColor = "#FFFFFFFF", // 흰색
+                                    fontColor = "#FF000000",       // 검정색
+                                    borderRadius = 0.0f,           // 직각
+                                )
+                            }
                         }
 
                         val newActions = if (componentType == ComponentType.Button && selectedEventType != EventType.NONE) {

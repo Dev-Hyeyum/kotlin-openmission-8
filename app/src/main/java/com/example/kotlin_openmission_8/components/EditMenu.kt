@@ -128,39 +128,7 @@ fun EditMenu(
         NumberDataField(data = offsetY, label = "offsetY", changeData = { offsetY = it })
 
         // layer 변경 로직
-        Row(
-            modifier = Modifier.fillMaxWidth(0.9f).border(width = 1.dp, color = Color(0xFF79747e), shape = RoundedCornerShape(10f)),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    layer -= 1
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "layer 내리는 버튼"
-                )
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(text = "layer")
-                Text(text = "${layer.toInt()}")
-            }
-            IconButton(
-                onClick = {
-                    layer += 1
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "layer 올리는 버튼"
-                )
-            }
-        }
+        IncreaseDecreaseBox(value = layer, onChangeValue = { layer = it})
 
         if (component.type == ComponentType.Text || component.type == ComponentType.Button || component.type == ComponentType.InputField) {
             val labelText = if (component.type == ComponentType.InputField) "Placeholder (안내 문구)" else "Text"
