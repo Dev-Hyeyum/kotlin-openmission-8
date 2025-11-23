@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -39,7 +38,7 @@ fun HomeScreenContent(
             .padding(5.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(vertical = 30.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -58,14 +57,6 @@ fun HomeScreenContent(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "캔버스 추가 버튼"
-                    )
-                }
-                IconButton(
-                    onClick = { }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "캔버스 선택 삭제 버튼"
                     )
                 }
             }
