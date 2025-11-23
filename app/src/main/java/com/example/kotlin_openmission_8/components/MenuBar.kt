@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -130,7 +131,7 @@ fun MenuBar(
             }
         ) {
             Icon(
-                imageVector = Icons.Default.Favorite,
+                imageVector = Icons.Default.ExitToApp,
                 contentDescription = "홈 화면으로 돌아가는 버튼"
             )
         }
