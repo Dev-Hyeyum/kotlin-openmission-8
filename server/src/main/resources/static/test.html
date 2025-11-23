@@ -197,6 +197,21 @@
                 el.appendChild(img);
             }
 
+            if (command.type === "Dropdown" && command.options && Array.isArray(command.options)) {
+                // Dropdown은 <select> 태그를 사용
+
+                // 1. 기존 요소의 내용을 모두 지웁니다.
+                el.innerHTML = '';
+
+                // 2. 옵션 목록을 순회하며 <option> 태그를 생성합니다.
+                command.options.forEach(optionText => {
+                    const option = document.createElement('option');
+                    option.value = optionText;
+                    option.text = optionText;
+                    el.appendChild(option);
+                });
+            }
+
             // 이벤트 처리 (actions 리스트 반복)
             // 기존의 command.onClickAction 대신 command.actions를 확인합니다.
             if (command.actions && command.actions.length > 0) {
@@ -220,6 +235,7 @@
             let el;
             if (command.type === "Text") el = document.createElement("p");
             else if (command.type === "Button") el = document.createElement("button");
+            else if (command.type === "Dropdown") el = document.createElement("select");
             else if (command.type === "InputField") {
                 el = document.createElement("input");
                 el.type = "text";

@@ -45,5 +45,6 @@ data class Component(
     ),
     val actions: List<EventAction> = emptyList(),
     val imageUrl: String? = null,
-    var layer: Float = 0f
+    var layer: Float = 0f,
+    val options: List<String> = emptyList()
 )
