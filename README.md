@@ -26,7 +26,9 @@
 7. [📄 라이선스](#6--라이선스)
 
 ## <a id="heading-0"></a>0. 🎬 서비스 실행 화면
-> TODO: 프로젝트 완료 후 간단한 결과물 삽입하기(GIF or Video)
+- 어울림 서비스로 구현해본 간단한 로그인 화면 프로토타입 입니다!
+  
+http://kotlin-openmission.myftp.org:9090/test.html?room=947fda
 
 ## <a id="heading-1"></a>1. 🚀 프로젝트 소개
 ### 🧑‍💻 Team Dev-Hyeyum
@@ -159,11 +161,13 @@
 ## 4. ▶️🔧 실행 방법
 
 - 4.1 서버, 앱을 직접 실행하기
-  - TODO: 실행 방법 기술하기
+	- IntelliJ IDEA에서 Ktor 프로젝트를 엽니다.
+
+	- src/main/kotlin/com/example/server/Application.kt 파일을 엽니다.
+
+	- fun main() 함수 옆에 있는 녹색 '▶️' 버튼을 클릭하여 서버를 실행합니다.
 
 - 4.2 앱만 실행하여 현재 배포 중인 서버에 연결하기
-  - TODO: 실행 방법 기술하기
+	- Android 프로젝트의 루트 폴더에 있는 local.properties 파일을 엽니다.
+	- 앱이 로컬 서버에 접속할 수 있도록 주소(http://kotlin-openmission.myftp.org:9090/)를 설정합니다. (⚠️중요: 모바일 기기가 서버와 동일한 네트워크에 있다면 컴퓨터의 내부 IP 주소를 사용해야 합니다. localhost를 사용할 경우 앱이 아닌 앱 자신의 로컬호스트를 바라봅니다.)
 
-## 5. 🏗️ 시스템 아키텍처
-
-## 6. 📄 라이선스
